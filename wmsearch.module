@@ -1,0 +1,30 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use \Drupal\wmsearch\Entity\Document\DocumentInterface;
+
+/**
+ * Queue entities to be added/removed to/from the index.
+ */
+function wmsearch_queue(EntityInterface $e)
+{
+    \Drupal::service('queue')
+        ->get('wmsearch.index')
+        ->createItem(['type' => $e->getEntityTypeId(), 'id' => $e->id()]);
+}
+
+function wmsearch_entity_delete(EntityInterface $e)
+{
+    wmsearch_queue($e);
+}
+
+function wmsearch_entity_update(EntityInterface $e)
+{
+    wmsearch_queue($e);
+}
+
+function wmsearch_entity_insert(EntityInterface $e)
+{
+    wmsearch_queue($e);
+}
+

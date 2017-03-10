@@ -1,0 +1,17 @@
+{
+    "name": "wieni/wmsearch",
+    "description": "Elasticsearch api",
+    "license": "GPLv3",
+    "authors": [
+        {
+            "name": "Wieni",
+            "email": "info@wieni.be"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "type": "drupal-module",
+    "require": {
+        "guzzlehttp/guzzle": "^6.1"
+    }
+}

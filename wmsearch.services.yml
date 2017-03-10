@@ -1,0 +1,25 @@
+parameters:
+    wmsearch.elastic.endpoint: 'http://localhost:9200'
+    wmsearch.elastic.index: ''
+    wmsearch.simple_search: false
+
+services:
+    wmsearch.api:
+        class: 'Drupal\wmsearch\Service\Api'
+        arguments:
+            - '@wmsearch.http'
+            - '@app.root'
+            - '@module_handler'
+            - '%wmsearch.elastic.endpoint%'
+            - '%wmsearch.elastic.index%'
+
+    wmsearch.html_stripper:
+        class: 'Drupal\wmsearch\Service\HtmlStripper'
+
+    wmsearch.http:
+        class: GuzzleHttp\Client
+
+    wmsearch.routing.disable_simple_search:
+        class:  Drupal\wmsearch\Routing\DisableSimpleSearchSubscriber
+        arguments: ['%wmsearch.simple_search%']
+        tags: [{ name: event_subscriber }]

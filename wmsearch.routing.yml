@@ -1,0 +1,14 @@
+wmsearch.health:
+    path: 'wmsearch/health'
+    defaults:
+        _controller: '\Drupal\wmsearch\Controller\SearchController::health'
+    requirements:
+        _access: 'TRUE'
+
+wmsearch.simple:
+    path: '/simple-search'
+    defaults:
+        _form: '\Drupal\wmsearch\Form\SimpleSearchForm'
+        _title: 'Search'
+    requirements:
+        _permission: 'access content'

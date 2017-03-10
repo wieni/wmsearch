@@ -1,0 +1,90 @@
+{
+    "settings": {
+        "index.mapper.dynamic": false,
+        "index.number_of_shards": 1,
+        "index.number_of_replicas": 0,
+        "analysis": {
+            "analyzer": {
+                "html": {
+                    "tokenizer": "standard",
+                    "char_filter": [
+                        "html"
+                    ]
+                },
+                "ngram": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "asciifolding",
+                        "lowercase",
+                        "ngram"
+                    ]
+                }
+            },
+            "char_filter": {
+                "html": {
+                    "type": "html_strip"
+                }
+            },
+            "filter": {
+                "ngram": {
+                    "type": "edge_ngram",
+                    "min_gram": 2,
+                    "max_gram": 20
+                }
+            }
+        }
+    },
+    "mappings": {
+        "_default_": {
+            "dynamic": "strict",
+            "_all": {
+                "enabled": false
+            }
+        },
+        "page": {
+            "dynamic": false,
+            "_all": {
+                "enabled": false
+            },
+            "properties": {
+                "type": {
+                    "type": "keyword"
+                },
+                "bundle": {
+                    "type": "keyword"
+                },
+                "language": {
+                    "type": "keyword"
+                },
+                "title": {
+                    "analyzer": "ngram",
+                    "search_analyzer": "standard",
+                    "type": "text",
+                    "boost": 2
+                },
+                "terms": {
+                    "analyzer": "ngram",
+                    "search_analyzer": "standard",
+                    "type": "text",
+                    "boost": 1.5
+                },
+                "intro": {
+                    "type": "text",
+                    "boost": 1.2
+                },
+                "body": {
+                    "analyzer": "html",
+                    "search_analyzer": "standard",
+                    "type": "text"
+                },
+                "created": {
+                    "type": "date"
+                },
+                "changed": {
+                    "type": "date"
+                }
+            }
+        }
+    }
+}
