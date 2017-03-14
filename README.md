@@ -10,6 +10,8 @@ inject `wmsearch.api`
 
 ## Index
 
+Only implemented by Drupal\wmsearch\Service\Api, not by Drupal\wmsearch\Service\BaseApi.
+
 `$api->createIndex();`
 
 `$api->deleteIndex();`
@@ -24,9 +26,12 @@ inject `wmsearch.api`
 
 ## Search
 
-`$api->search() : SearchResult`
+`$api->search(QueryInterface) : SearchResult`
 
-`$api->highlightSearch() : SearchResult // Identical to ->search() but strips html from highlights`
+```
+// Identical to ->search() but strips html from highlights
+$api->highlightSearch(QueryInterface) : SearchResult
+```
 
 ## Misc
 
@@ -53,3 +58,10 @@ wmsearch.simple_search: false
 # License
 
 GPL
+
+# TODO
+
+- DocumentInterface examples
+- wmmodel implementation + reindex
+- BaseApi + some json formatter endpoint / example
+- BaseApi: light bootstrap: how to retrieve wmsearch.elastic.endpoint and wmsearch.elastic.index? (kernel event?)

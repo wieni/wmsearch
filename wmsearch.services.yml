@@ -7,7 +7,6 @@ services:
     wmsearch.api:
         class: 'Drupal\wmsearch\Service\Api'
         arguments:
-            - '@wmsearch.http'
             - '@app.root'
             - '@module_handler'
             - '%wmsearch.elastic.endpoint%'
@@ -15,9 +14,6 @@ services:
 
     wmsearch.html_stripper:
         class: 'Drupal\wmsearch\Service\HtmlStripper'
-
-    wmsearch.http:
-        class: GuzzleHttp\Client
 
     wmsearch.routing.disable_simple_search:
         class:  Drupal\wmsearch\Routing\DisableSimpleSearchSubscriber
