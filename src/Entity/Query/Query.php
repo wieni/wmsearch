@@ -43,8 +43,8 @@ class Query implements QueryInterface, HighlightInterface
     public function addMultiMatch($query, array $fields = [])
     {
         return $this
-            ->set('query', 'multi_match', 'query', $query)
-            ->set('query', 'multi_match', 'fields', $fields);
+            ->set('query', 'bool', 'must', 'multi_match', 'query', $query)
+            ->set('query', 'bool', 'must', 'multi_match', 'fields', $fields);
     }
 
     /**
@@ -55,7 +55,7 @@ class Query implements QueryInterface, HighlightInterface
      */
     public function addQuery($type, array $query)
     {
-        return $this->set('query', $type, $query);
+        return $this->set('query', 'bool', 'must', [$type => $query]);
     }
 
     /**
@@ -66,7 +66,7 @@ class Query implements QueryInterface, HighlightInterface
      */
     public function addFilter($type, array $filter)
     {
-        return $this->set('filter', $type, $filter);
+        return $this->add('query', 'bool', 'filter', [$type => $filter]);
     }
 
     public function setHighlight(
@@ -136,6 +136,23 @@ class Query implements QueryInterface, HighlightInterface
         }
 
         $q[$lk] = $value;
+
+        return $this;
+    }
+
+    protected function add()
+    {
+        $keys = func_get_args();
+        $value = array_pop($keys);
+        $lk = array_pop($keys);
+
+        $q = &$this->query;
+        foreach ($keys as $k) {
+            $q += [$k => []];
+            $q = &$q[$k];
+        }
+
+        $q[$lk][] = $value;
 
         return $this;
     }
