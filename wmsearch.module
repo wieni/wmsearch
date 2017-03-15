@@ -1,7 +1,7 @@
 <?php
 
 use Drupal\Core\Entity\EntityInterface;
-use \Drupal\wmsearch\Entity\Document\DocumentInterface;
+use Drupal\wmsearch\Exception\ApiException;
 
 /**
  * Queue entities to be added/removed to/from the index.
@@ -26,5 +26,18 @@ function wmsearch_entity_update(EntityInterface $e)
 function wmsearch_entity_insert(EntityInterface $e)
 {
     wmsearch_queue($e);
+}
+
+function wmsearch_rebuild()
+{
+    // Doesn't feel right, more appropriate place to do this.
+    // ... what if elastic is down? no more drush cr?
+    try {
+        \Drupal::service('wmsearch.api')->createIndex();
+    } catch (ApiException $e) {
+        if (!$e->isIndexExists()) {
+            throw $e;
+        }
+    }
 }
 

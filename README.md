@@ -41,7 +41,15 @@ $api->highlightSearch(QueryInterface) : SearchResult
 
 `$api->flush() // fsync the lucene index`
 
+# JSON
 
+GET /search/json?q=lorem%20ipsum&p=1&pp=10
+
+```
+q  string The query
+p  int    The page
+pp int    Items per page
+```
 # Config
 
 ```yaml
@@ -53,6 +61,15 @@ wmsearch.elastic.index: 'mysite-staging'
 
 # Serve a quick'n dirty site search on /simple-search
 wmsearch.simple_search: false
+
+# Default JSON endpoint
+wmsearch.json.path: '/search/json'
+
+# Formatter class for the JSON endpoint
+wmsearch.json.formatter.class: 'Drupal\wmsearch\Service\ResultFormatter'
+
+# Query provider for the JSON endpoint
+wmsearch.json.query_builder.class: 'Drupal\wmsearch\Service\QueryBuilder'
 ```
 
 # License
@@ -63,5 +80,3 @@ GPL
 
 - DocumentInterface examples
 - wmmodel implementation + reindex
-- BaseApi + some json formatter endpoint / example
-- BaseApi: light bootstrap: how to retrieve wmsearch.elastic.endpoint and wmsearch.elastic.index? (kernel event?)

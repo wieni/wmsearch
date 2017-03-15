@@ -5,6 +5,7 @@ namespace Drupal\wmsearch\Form;
 use Drupal\wmsearch\Service\Api;
 use Drupal\wmsearch\Exception\ApiException;
 use Drupal\wmsearch\Entity\Query\Query;
+use Drupal\wmsearch\Service\QueryBuilderInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslationManager;
@@ -22,13 +23,18 @@ class SimpleSearchForm extends FormBase
     /** @var TranslationManager */
     protected $trans;
 
+    /** @var QueryBuilderInterface */
+    protected $builder;
+
     public function __construct(
         Api $api,
         RequestStack $req,
+        QueryBuilderInterface $builder,
         TranslationManager $trans
     ) {
         $this->api = $api;
         $this->req = $req;
+        $this->builder = $builder;
         $this->trans = $trans;
     }
 
@@ -37,6 +43,7 @@ class SimpleSearchForm extends FormBase
         return new static(
             $container->get('wmsearch.api'),
             $container->get('request_stack'),
+            $container->get('wmsearch.json.query_builder'),
             $container->get('string_translation')
         );
     }
@@ -74,17 +81,9 @@ class SimpleSearchForm extends FormBase
             '#button_type' => 'primary',
         ];
 
-        $perPage = 1;
-        $total = 0;
         if (!empty($query)) {
-            $q = (new Query('page'))
-                ->from($perPage * $page)
-                ->size($perPage)
-                ->setHighlight(1, 120, ['title', 'body'], '<em>', '</em>')
-                ->addMultiMatch($query, ['title', 'body']);
-
             try {
-                $this->search($form, $q);
+                $this->search($form, $query, $page);
             } catch (ApiException $e) {
                 $form['error']['#markup'] = sprintf(
                     '<p class="warning">%s</p>',
@@ -92,12 +91,6 @@ class SimpleSearchForm extends FormBase
                 );
             }
         }
-
-        pager_default_initialize($total, $perPage);
-        $form['pager'] = [
-            '#type' => 'pager',
-            '#parameters' => ['query' => $query],
-        ];
 
         return $form;
     }
@@ -107,12 +100,14 @@ class SimpleSearchForm extends FormBase
         $formState->setRebuild();
     }
 
-    protected function search(array &$form, Query $q)
+    protected function search(array &$form, $query, $page = 0)
     {
+        $perPage = 10;
+        $q = $this->builder->build($query, $page, $perPage);
         $r = $this->api->highlightSearch($q);
         $form['results'] = ['#type' => 'container'];
 
-        $total = $r->getTotal(); //$results['hits']['total'];
+        $total = $r->getTotal();
         $rows = ['#theme' => 'item_list', '#items' => []];
         foreach ($r->getHits() as $hit) {
             $rows['#items'][] = [
@@ -129,6 +124,13 @@ class SimpleSearchForm extends FormBase
             '#type' => 'container',
             'rows' => $rows,
         ];
+
+        pager_default_initialize($total, $perPage);
+        $form['pager'] = [
+            '#type' => 'pager',
+            '#parameters' => ['query' => $query],
+        ];
+
     }
 }
 

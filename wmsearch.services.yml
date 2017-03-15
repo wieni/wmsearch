@@ -1,7 +1,12 @@
 parameters:
     wmsearch.elastic.endpoint: 'http://localhost:9200'
     wmsearch.elastic.index: ''
+
     wmsearch.simple_search: false
+
+    wmsearch.json.path: '/search/json'
+    wmsearch.json.formatter.class: 'Drupal\wmsearch\Service\ResultFormatter'
+    wmsearch.json.query_builder.class: 'Drupal\wmsearch\Service\QueryBuilder'
 
 services:
     wmsearch.api:
@@ -12,10 +17,32 @@ services:
             - '%wmsearch.elastic.endpoint%'
             - '%wmsearch.elastic.index%'
 
+    wmsearch.base_api:
+        class: 'Drupal\wmsearch\Service\BaseApi'
+        arguments:
+            - '%wmsearch.elastic.endpoint%'
+            - '%wmsearch.elastic.index%'
+
     wmsearch.html_stripper:
         class: 'Drupal\wmsearch\Service\HtmlStripper'
 
+    wmsearch.json.query_builder:
+        class: '%wmsearch.json.query_builder.class%'
+
+    wmsearch.json.formatter:
+        class: '%wmsearch.json.formatter.class%'
+
     wmsearch.routing.disable_simple_search:
-        class:  Drupal\wmsearch\Routing\DisableSimpleSearchSubscriber
+        class:  'Drupal\wmsearch\Routing\DisableSimpleSearchSubscriber'
         arguments: ['%wmsearch.simple_search%']
         tags: [{ name: event_subscriber }]
+
+    wmsearch.middleware.early_json:
+        class: Drupal\wmsearch\Middleware\EarlyJson
+        arguments:
+            - '@wmsearch.base_api'
+            - '@wmsearch.json.formatter'
+            - '@wmsearch.json.query_builder'
+            - '%wmsearch.json.path%'
+        tags:
+            - { name: http_middleware, priority: 250, responder: true }
