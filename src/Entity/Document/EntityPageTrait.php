@@ -17,6 +17,8 @@ trait EntityPageTrait /* implements Drupal\Core\Entity\EntityInterface */
 
     abstract public function language();
 
+    abstract public function toElasticArray($type);
+
     public static function getElasticTypes()
     {
         return ['page'];
@@ -34,7 +36,7 @@ trait EntityPageTrait /* implements Drupal\Core\Entity\EntityInterface */
         return sprintf('%s:%s', $this->getEntityTypeId(), $id);
     }
 
-    public function toElasticArray($type)
+    public function getBaseElasticArray()
     {
         return [
             'id' => $this->id(),
