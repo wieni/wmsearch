@@ -9,6 +9,9 @@ class QueryBuilder implements QueryBuilderInterface
     protected $highlightAmount = 1;
     protected $highlightSize = 120;
 
+    protected $fields = ['title', 'intro', 'body', 'terms'];
+    protected $highlights = ['title', 'intro', 'body'];
+
     public function build($query, $page, $perPage)
     {
         return (new PageQuery())
@@ -17,11 +20,11 @@ class QueryBuilder implements QueryBuilderInterface
             ->setHighlight(
                 $this->highlightAmount,
                 $this->highlightSize,
-                ['title', 'body'],
+                $this->fields,
                 '<em>',
                 '</em>'
             )
-            ->addMultiMatch($query, ['title', 'body']);
+            ->addMultiMatch($query, $this->highlights);
     }
 }
 

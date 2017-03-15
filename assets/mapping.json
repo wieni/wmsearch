@@ -70,6 +70,8 @@
                     "boost": 1.5
                 },
                 "intro": {
+                    "analyzer": "ngram",
+                    "search_analyzer": "standard",
                     "type": "text",
                     "boost": 1.2
                 },

@@ -83,7 +83,7 @@ class SimpleSearchForm extends FormBase
 
         if (!empty($query)) {
             try {
-                $this->search($form, $query, $page);
+                $form += $this->search($query, $page);
             } catch (ApiException $e) {
                 $form['error']['#markup'] = sprintf(
                     '<p class="warning">%s</p>',
@@ -100,7 +100,7 @@ class SimpleSearchForm extends FormBase
         $formState->setRebuild();
     }
 
-    protected function search(array &$form, $query, $page = 0)
+    protected function search($query, $page = 0)
     {
         $perPage = 10;
         $q = $this->builder->build($query, $page, $perPage);
@@ -115,7 +115,7 @@ class SimpleSearchForm extends FormBase
                     '<a href="%s"><h3>%s</h3><p>%s</p></a>',
                     $hit->getSource('url') ?? '/',
                     $hit->getHighlights('title')[0] ?? $hit->getSource('title'),
-                    $hit->getHighlights('body')[0] ?? ''
+                    $hit->getHighlights('intro')[0] ?? ($hit->getHighlights('body')[0] ?? '')
                 ),
             ];
         }
@@ -131,6 +131,7 @@ class SimpleSearchForm extends FormBase
             '#parameters' => ['query' => $query],
         ];
 
+        return $form;
     }
 }
 
