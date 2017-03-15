@@ -61,7 +61,7 @@ class HtmlStripper
         }
 
         $dom = new \DOMDocument('1.0', 'UTF-8');
-        $dom->loadHTML($html);
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>' . $html);
 
         $data = '';
         foreach ($dom->childNodes as $node) {
