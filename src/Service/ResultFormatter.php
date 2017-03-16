@@ -4,6 +4,7 @@ namespace Drupal\wmsearch\Service;
 
 use Drupal\wmsearch\Entity\Result\SearchResult;
 use Drupal\wmsearch\Entity\Result\Hit;
+use Drupal\wmsearch\Entity\Result\Suggestion;
 use Drupal\wmsearch\Exception\ApiException;
 
 class ResultFormatter implements ResultFormatterInterface
@@ -19,6 +20,12 @@ class ResultFormatter implements ResultFormatterInterface
             $d['results'][] = $this->formatHit($hit);
         }
 
+        foreach ($result->getSuggestionFields() as $field) {
+            foreach ($result->getSuggestions($field) as $hit) {
+                $d['suggestions'][$field][] = $this->formatSuggestion($hit);
+            }
+        }
+
         return $d;
     }
 
@@ -27,6 +34,14 @@ class ResultFormatter implements ResultFormatterInterface
         return [
             'document' => $hit->getSource(),
             'highlights' => $hit->getHighlights(),
+        ];
+    }
+
+    protected function formatSuggestion(Suggestion $suggestion)
+    {
+        return [
+            'document' => $suggestion->getSource(),
+            'suggestion' => $suggestion->getSuggestion(),
         ];
     }
 

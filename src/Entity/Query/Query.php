@@ -47,6 +47,19 @@ class Query implements QueryInterface, HighlightInterface
             ->set('query', 'bool', 'must', 'multi_match', 'fields', $fields);
     }
 
+    public function setSource($source = '*')
+    {
+        return $this->set('_source', $source);
+    }
+
+    public function addCompletion($field, $query, $fuzzy = 2)
+    {
+        return $this
+            ->set('suggest', $field, 'prefix', $query)
+            ->set('suggest', $field, 'completion', 'field', $field)
+            ->set('suggest', $field, 'completion', 'fuzzy', 'fuzziness', $fuzzy);
+    }
+
     /**
      * Add a query
      *

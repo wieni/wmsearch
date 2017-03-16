@@ -24,6 +24,36 @@ class SearchResult
         );
     }
 
+    public function getSuggestionFields()
+    {
+        $suggestions = $this->get('suggest');
+        if (empty($suggestions)) {
+            return [];
+        }
+
+        return array_keys($suggestions);
+    }
+
+    /**
+     * @return Suggestion[];
+     */
+    public function getSuggestions($field)
+    {
+        $suggestions = $this->get('suggest', $field);
+        if (empty($suggestions)) {
+            return [];
+        }
+
+        $items = [];
+        foreach ($suggestions as $raws) {
+            foreach ($raws['options'] as $item) {
+                $items[] = new Suggestion($item);
+            }
+        }
+
+        return $items;
+    }
+
     public function getTotal()
     {
         return $this->get('hits', 'total');

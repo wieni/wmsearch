@@ -11,6 +11,13 @@ class PageQuery extends Query
         parent::__construct('page', $query);
     }
 
+    public function addCompletion($query, $fuzzy = 2)
+    {
+        parent::addCompletion('suggest', $query, $fuzzy);
+
+        return $this;
+    }
+
     public function filterLanguage($lang)
     {
         if ($lang instanceof LanguageInterface) {

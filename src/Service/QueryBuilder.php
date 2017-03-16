@@ -14,6 +14,10 @@ class QueryBuilder implements QueryBuilderInterface
 
     public function build($query, $page, $perPage)
     {
+        // return (new PageQuery())
+        //     ->setSource('title')
+        //     ->addCompletion($query, 0);
+
         return (new PageQuery())
             ->from($perPage * $page)
             ->size($perPage)

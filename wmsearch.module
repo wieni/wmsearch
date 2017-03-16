@@ -41,3 +41,24 @@ function wmsearch_rebuild()
     }
 }
 
+function wtest()
+{
+    $etm = \Drupal::service('entity_type.manager');
+    $api = \Drupal::service('wmsearch.api');
+    try {
+        $api->deleteIndex();
+        $api->createIndex();
+    } catch (\Exception $e) {
+    }
+
+    $s = $etm->getStorage('node');
+    foreach ($s->getQuery()->execute() as $id) {
+        if (
+            ($e = $s->load($id))
+            && $e instanceof \Drupal\wmsearch\Entity\Document\DocumentInterface
+        ) {
+            wmsearch_queue($e);
+        }
+    }
+}
+
