@@ -16,7 +16,7 @@ class QueryBuilder implements QueryBuilderInterface
     {
         // return (new PageQuery())
         //     ->setSource('title')
-        //     ->addCompletion($query, 0);
+        //     ->complete($query);
 
         return (new PageQuery())
             ->from($perPage * $page)
@@ -24,11 +24,11 @@ class QueryBuilder implements QueryBuilderInterface
             ->setHighlight(
                 $this->highlightAmount,
                 $this->highlightSize,
-                $this->fields,
+                $this->highlights,
                 '<em>',
                 '</em>'
             )
-            ->addMultiMatch($query, $this->highlights);
+            ->addMultiMatch($query, $this->fields);
     }
 }
 
