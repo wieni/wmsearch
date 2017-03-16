@@ -76,6 +76,94 @@ wmsearch.json.query_builder.class: 'Drupal\wmsearch\Service\QueryBuilder'
 
 GPL
 
+
+# Examples
+
+## DocumentInterface
+
+This assumes [wieni/wmmodel](https://github.com/wieni/wmmodel) or something similar.
+
+```php
+class Dish extends Node implements WmModelInterface, DocumentInterface
+{
+    use EntityPageTrait;
+
+    public function toElasticArray($docType)
+    {
+        if ($docType !== 'page') {
+            throw new \RuntimeException('Not prepared for that');
+        }
+
+        $bodies = array_filter(
+            array_map(
+                function (EckModel $item) {
+                    if ($item instanceof Step) {
+                        return $item->getDescription();
+                    }
+
+                    return false;
+                },
+                $this->getPreparation()
+            )
+        );
+
+        $tags = array_map(
+            function (HiddenTag $tag) {
+                return $tag->getTitle();
+            },
+            $this->getTags()
+        );
+
+        $d = [
+            'title' => $this->getTitle(),
+            'intro' => $this->getDescription(),
+            'created' => $this->getCreatedTime(),
+            'changed' => $this->getChangedTime(),
+            'body' => array_values($bodies),
+            'terms' => $tags,
+            'suggest' => $this->getTitle(),
+        ];
+
+        return $this->getBaseElasticArray($docType) + $d;
+    }
+
+    ...
+}
+```
+
+```
+$dish = $nodeStorage->load(123);
+$api->addDoc($dish);
+```
+
+## Query
+
+Search
+
+```php
+$perPage = 10;
+$page = (int) $req->query->get('page');
+$input = $req->query->get('q', '');
+
+$query = new PageQuery();
+$query->from($perPage * $page)
+    ->size($perPage)
+    ->setHighlight(1, 120, ['title', 'intro'], '<em>', '</em>')
+    ->addMultiMatch($input, ['title', 'intro', 'body']);
+
+$formatter->format($api->highlightSearch($query));
+```
+
+Completion
+
+```php
+$query = new PageQuery();
+    ->setSource('')
+    ->complete($input, 2);
+
+$formatter->format($api->search($query));
+```
+
 # TODO
 
 - DocumentInterface examples
