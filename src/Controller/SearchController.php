@@ -4,8 +4,6 @@ namespace Drupal\wmsearch\Controller;
 
 use Drupal\wmsearch\Service\Api;
 use Drupal\wmsearch\Exception\ApiException;
-use Drupal\wmsearch\Entity\Document\VerbatimPage;
-use Drupal\wmsearch\Entity\Query\Query;
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
