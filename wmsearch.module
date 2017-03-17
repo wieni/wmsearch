@@ -10,7 +10,13 @@ function wmsearch_queue(EntityInterface $e)
 {
     \Drupal::service('queue')
         ->get('wmsearch.index')
-        ->createItem(['type' => $e->getEntityTypeId(), 'id' => $e->id()]);
+        ->createItem(
+            [
+                'type' => $e->getEntityTypeId(),
+                'language' => $e->language()->getId(),
+                'id' => $e->id(),
+            ]
+        );
 }
 
 function wmsearch_entity_delete(EntityInterface $e)
@@ -28,6 +34,27 @@ function wmsearch_entity_insert(EntityInterface $e)
     wmsearch_queue($e);
 }
 
+function wmsearch_entity_id(EntityInterface $e)
+{
+    $id = $e->id();
+    if (!$id) {
+        throw new \RuntimeException(
+            'Can not retrieve the elastic id for an entity without id'
+        );
+    }
+
+    return wmsearch_id(
+        $e->getEntityTypeId(),
+        $e->language()->getId(),
+        $id
+    );
+}
+
+function wmsearch_id($type, $language, $id)
+{
+    return sprintf('%s:%s:%s', $type, $language, $id);
+}
+
 function wmsearch_rebuild()
 {
     // Doesn't feel right, more appropriate place to do this.
@@ -37,27 +64,6 @@ function wmsearch_rebuild()
     } catch (ApiException $e) {
         if (!$e->isIndexExists()) {
             throw $e;
-        }
-    }
-}
-
-function wtest()
-{
-    $etm = \Drupal::service('entity_type.manager');
-    $api = \Drupal::service('wmsearch.api');
-    try {
-        $api->deleteIndex();
-        $api->createIndex();
-    } catch (\Exception $e) {
-    }
-
-    $s = $etm->getStorage('node');
-    foreach ($s->getQuery()->execute() as $id) {
-        if (
-            ($e = $s->load($id))
-            && $e instanceof \Drupal\wmsearch\Entity\Document\DocumentInterface
-        ) {
-            wmsearch_queue($e);
         }
     }
 }

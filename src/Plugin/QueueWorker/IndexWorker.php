@@ -65,7 +65,7 @@ class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInter
         ) {
             $this->api->delDoc(
                 'page',
-                sprintf('%s:%s', $data['type'], $data['id'])
+                wmsearch_id($data['type'], $data['language'], $data['id'])
             );
 
             return;

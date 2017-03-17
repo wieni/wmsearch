@@ -26,14 +26,7 @@ trait EntityPageTrait /* implements Drupal\Core\Entity\EntityInterface */
 
     final public function getElasticId()
     {
-        $id = $this->id();
-        if (!$id) {
-            throw new \RuntimeException(
-                'Can not retrieve the elastic id for an entity without id'
-            );
-        }
-
-        return sprintf('%s:%s', $this->getEntityTypeId(), $id);
+        return wmsearch_entity_id($this);
     }
 
     public function getBaseElasticArray()
