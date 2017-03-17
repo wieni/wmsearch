@@ -50,8 +50,8 @@ class EarlyJson implements HttpKernelInterface
         }
 
         $query = $request->query->get('q');
-        $perPage = min(100, (int) $request->query->get('pp', 5));
-        $page = (int) $request->query->get('p', 0);
+        $amount = min(100, (int) $request->query->get('a', 5));
+        $offset = (int) $request->query->get('o', 0);
         $e = null;
 
         try {
@@ -62,7 +62,7 @@ class EarlyJson implements HttpKernelInterface
             return new JsonResponse(
                 $this->formatter->format(
                     $this->api->highlightSearch(
-                        $this->builder->build($query, $page, $perPage)
+                        $this->builder->build($query, $offset, $amount)
                     )
                 )
             );

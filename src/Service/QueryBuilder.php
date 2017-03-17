@@ -12,15 +12,15 @@ class QueryBuilder implements QueryBuilderInterface
     protected $fields = ['title', 'intro', 'body', 'terms'];
     protected $highlights = ['title', 'intro', 'body'];
 
-    public function build($query, $page, $perPage)
+    public function build($query, $offset, $amount)
     {
         // return (new PageQuery())
         //     ->setSource('title')
         //     ->complete($query);
 
         return (new PageQuery())
-            ->from($perPage * $page)
-            ->size($perPage)
+            ->from($offset)
+            ->size($amount)
             ->setHighlight(
                 $this->highlightAmount,
                 $this->highlightSize,

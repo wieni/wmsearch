@@ -6,9 +6,9 @@ interface QueryBuilderInterface
 {
     /**
      * @param string $query   The search query
-     * @param int    $page    The current page
-     * @param int    $perPage Items per page
+     * @param int    $offset  Offset of the first item
+     * @param int    $amount  Amount of items
      */
-    public function build($query, $page, $perPage);
+    public function build($query, $offset, $amount);
 }
 

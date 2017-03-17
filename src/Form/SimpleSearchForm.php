@@ -103,7 +103,7 @@ class SimpleSearchForm extends FormBase
     protected function search($query, $page = 0)
     {
         $perPage = 10;
-        $q = $this->builder->build($query, $page, $perPage);
+        $q = $this->builder->build($query, $page * $perPage, $perPage);
         $r = $this->api->highlightSearch($q);
         $form['results'] = ['#type' => 'container'];
 

@@ -47,8 +47,8 @@ GET /search/json?q=lorem%20ipsum&p=1&pp=10
 
 ```
 q  string The query
-p  int    The page
-pp int    Items per page
+o  int    The offset
+a int    Amount of items
 ```
 # Config
 
