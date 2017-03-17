@@ -16,33 +16,46 @@ class PageQuery extends Query
         return $this->addCompletion('suggest', $query, $fuzzy);
     }
 
-    public function filterLanguage($lang)
+    public function filterLanguages(array $langs)
     {
-        if ($lang instanceof LanguageInterface) {
-            $lang = $lang->getId();
-        }
-
-        return $this->add('query', 'bool', 'filter', ['term' => ['language' => $lang]]);
+        return $this->addFilter(
+            'terms',
+            ['language' => $this->langIds($langs)]
+        );
     }
 
-    public function filterType($type)
+    public function filterCompletionLanguages(array $langs)
     {
-        return $this->add('query', 'bool', 'filter', ['term' => ['type' => $type]]);
+        return $this->addCompletionFilter(
+            'suggest',
+            'language',
+            $this->langIds($langs)
+        );
     }
 
-    public function filterBundle($bundle)
+    public function filterTypes(array $types)
     {
-        return $this->add('query', 'bool', 'filter', ['term' => ['type' => $bundle]]);
+        return $this->addFilter('terms', ['type' => $types]);
     }
 
-    public function filterTerm($term)
+    public function filterCompletionTypes(array $types)
     {
-        return $this->add('query', 'bool', 'filter', ['term' => ['terms' => $term]]);
+        return $this->addCompletionFilter('suggest', 'type', $types);
+    }
+
+    public function filterBundles(array $bundles)
+    {
+        return $this->addFilter('terms', ['bundle' => $bundles]);
+    }
+
+    public function filterCompletionBundles(array $bundles)
+    {
+        return $this->addCompletionFilter('suggest', 'bundle', $bundles);
     }
 
     public function filterTerms(array $terms)
     {
-        return $this->add('query', 'bool', 'filter', ['terms' => ['terms' => $terms]]);
+        return $this->addFilter('terms', ['terms' => $terms]);
     }
 
     /**
@@ -80,6 +93,20 @@ class PageQuery extends Query
         }
 
         return $this;
+    }
+
+    protected function langIds(array $langs)
+    {
+        return array_map(
+            function ($lang) {
+                if ($lang instanceof LanguageInterface) {
+                    return $lang->getId();
+                }
+
+                return $lang;
+            },
+            $langs
+        );
     }
 }
 

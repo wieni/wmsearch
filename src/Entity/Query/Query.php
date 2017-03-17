@@ -82,6 +82,25 @@ class Query implements QueryInterface, HighlightInterface
         return $this->add('query', 'bool', 'filter', [$type => $filter]);
     }
 
+    /**
+     * Suggestion contexts i.e.: filters in suggestions.
+     *
+     * TODO
+     * until https://github.com/elastic/elasticsearch/issues/21291#thread-subscription-status
+     * is fixed these filters are OR'd instead of the more intuitive AND.
+     */
+    public function addCompletionFilter($field, $name, array $values)
+    {
+        return $this->set(
+            'suggest',
+            $field,
+            'completion',
+            'contexts',
+            $name,
+            $values
+        );
+    }
+
     public function setHighlight(
         $amount,
         $size,

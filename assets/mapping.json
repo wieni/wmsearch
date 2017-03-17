@@ -49,16 +49,33 @@
             },
             "properties": {
                 "type": {
-                    "type": "keyword"
+                    "type": "text"
                 },
                 "bundle": {
-                    "type": "keyword"
+                    "type": "text"
                 },
                 "language": {
-                    "type": "keyword"
+                    "type": "text"
                 },
                 "suggest": {
-                    "type": "completion"
+                    "type": "completion",
+                    "contexts": [
+                        {
+                            "name": "language",
+                            "type": "category",
+                            "path": "language"
+                        },
+                        {
+                            "name": "bundle",
+                            "type": "category",
+                            "path": "bundle"
+                        },
+                        {
+                            "name": "type",
+                            "type": "category",
+                            "path": "type"
+                        }
+                    ]
                 },
                 "title": {
                     "analyzer": "ngram",
