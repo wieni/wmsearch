@@ -9,6 +9,7 @@ use Drupal\node\NodeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
+use Drupal\Core\TypedData\TranslatableInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -57,6 +58,14 @@ class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInter
     public function processItem($data)
     {
         $entity = $this->etm->getStorage($data['type'])->load($data['id']);
+
+        if (
+            $entity
+            && $entity instanceof TranslatableInterface
+            && $entity->language()->getId() !== $data['language']
+        ) {
+            $entity = $entity->getTranslation($data['language']);
+        }
 
         if (
             !$entity

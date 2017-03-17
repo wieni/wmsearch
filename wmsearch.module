@@ -2,34 +2,62 @@
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\wmsearch\Exception\ApiException;
+use Drupal\Core\TypedData\TranslatableInterface;
 
 /**
  * Queue entities to be added/removed to/from the index.
  */
-function wmsearch_queue(EntityInterface $e)
+function wmsearch_queue(EntityInterface $e, $allTranslations = false)
 {
-    \Drupal::service('queue')
-        ->get('wmsearch.index')
-        ->createItem(
-            [
-                'type' => $e->getEntityTypeId(),
-                'language' => $e->language()->getId(),
-                'id' => $e->id(),
-            ]
-        );
+    $languages = [$e->language()];
+    if (
+        $allTranslations
+        && $e instanceof TranslatableInterface
+        && ($_languages = $e->getTranslationLanguages())
+        && !empty($_languages)
+    ) {
+        $languages = $_languages;
+    }
+
+    foreach ($languages as $language) {
+        \Drupal::service('queue')
+            ->get('wmsearch.index')
+            ->createItem(
+                [
+                    'type' => $e->getEntityTypeId(),
+                    'language' => $language->getId(),
+                    'id' => $e->id(),
+                ]
+            );
+    }
 }
 
 function wmsearch_entity_delete(EntityInterface $e)
+{
+    wmsearch_queue($e, true);
+}
+
+function wmsearch_entity_translation_delete(EntityInterface $e)
 {
     wmsearch_queue($e);
 }
 
 function wmsearch_entity_update(EntityInterface $e)
 {
+    wmsearch_queue($e, true);
+}
+
+function wmsearch_entity_translation_update(EntityInterface $e)
+{
     wmsearch_queue($e);
 }
 
 function wmsearch_entity_insert(EntityInterface $e)
+{
+    wmsearch_queue($e, true);
+}
+
+function wmsearch_entity_translation_insert(EntityInterface $e)
 {
     wmsearch_queue($e);
 }
