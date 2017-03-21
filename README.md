@@ -43,7 +43,7 @@ $api->highlightSearch(QueryInterface) : SearchResult
 
 # JSON
 
-GET /search/json?q=lorem%20ipsum&p=1&pp=10
+GET /search/json?q=lorem%20ipsum&o=0&a=10
 
 ```
 q  string The query
