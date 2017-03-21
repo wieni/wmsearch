@@ -56,7 +56,8 @@ class ApiException extends \RuntimeException
                     && $this->body['result'] === $type
                 )
                 || (
-                    isset($this->body['found'])
+                    $type === 'not_found'
+                    && isset($this->body['found'])
                     && $this->body['found'] === false
                 )
                 || (
