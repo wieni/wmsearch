@@ -5,6 +5,14 @@
         "index.number_of_replicas": 0,
         "analysis": {
             "analyzer": {
+                "ascii": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "asciifolding",
+                        "lowercase"
+                    ]
+                },
                 "html": {
                     "tokenizer": "standard",
                     "char_filter": [
@@ -59,6 +67,8 @@
                 },
                 "suggest": {
                     "type": "completion",
+                    "analyzer": "ascii",
+                    "search_analyzer": "standard",
                     "contexts": [
                         {
                             "name": "language",
