@@ -261,7 +261,7 @@ class BaseApi
 
         $body = json_decode($r->getBody(), true);
         if ($body === false) {
-            throw new \ApiException(
+            throw new ApiException(
                 'Failed to decode response body'
             );
         }
