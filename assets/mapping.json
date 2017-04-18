@@ -15,8 +15,12 @@
                 },
                 "html": {
                     "tokenizer": "standard",
+                    "filter": [
+                        "asciifolding",
+                        "lowercase"
+                    ],
                     "char_filter": [
-                        "html"
+                        "html_strip"
                     ]
                 },
                 "ngram": {
@@ -27,11 +31,6 @@
                         "lowercase",
                         "ngram"
                     ]
-                }
-            },
-            "char_filter": {
-                "html": {
-                    "type": "html_strip"
                 }
             },
             "filter": {
