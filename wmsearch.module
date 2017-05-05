@@ -91,7 +91,7 @@ function wmsearch_rebuild()
         \Drupal::service('wmsearch.api')->createIndex();
     } catch (ApiException $e) {
         if (!$e->isIndexExists()) {
-            throw $e;
+            \Drupal::logger('wmsearch')->error($e->getMessage());
         }
     }
 }
