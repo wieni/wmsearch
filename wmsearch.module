@@ -85,14 +85,10 @@ function wmsearch_id($type, $language, $id)
 
 function wmsearch_rebuild()
 {
-    // Doesn't feel right, more appropriate place to do this.
-    // ... what if elastic is down? no more drush cr?
     try {
         \Drupal::service('wmsearch.api')->createIndex();
     } catch (ApiException $e) {
-        if (!$e->isIndexExists()) {
-            \Drupal::logger('wmsearch')->error($e->getMessage());
-        }
+        \Drupal::logger('wmsearch')->error($e->getMessage());
     }
 }
 
