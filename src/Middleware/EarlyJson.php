@@ -59,11 +59,14 @@ class EarlyJson implements HttpKernelInterface
                 throw new ApiException('No query provided');
             }
 
+            $q = $this->builder->build($query, $offset, $amount);
+            $pre = $q->getHighlightPreTag();
+            $post = $q->getHighlightPostTag();
             return new JsonResponse(
                 $this->formatter->format(
-                    $this->api->highlightSearch(
-                        $this->builder->build($query, $offset, $amount)
-                    )
+                    $this->api->highlightSearch($q),
+                    $pre,
+                    $post
                 )
             );
         } catch (ApiException $e) {

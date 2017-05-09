@@ -10,7 +10,11 @@ interface ResultFormatterInterface
     /**
      * @return array
      */
-    public function format(SearchResult $result);
+    public function format(
+        SearchResult $result,
+        $highlightPreTag,
+        $highlightPostTag
+    );
 
     public function formatException(ApiException $e = null);
 }
