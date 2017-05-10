@@ -42,6 +42,12 @@ class Query implements QueryInterface, HighlightInterface
 
     public function addMultiMatch($query, array $fields = [])
     {
+        if ($this->has('query', 'function_score')) {
+            return $this
+                ->set('query', 'function_score', 'query', 'bool', 'must', 'multi_match', 'query', $query)
+                ->set('query', 'function_score', 'query', 'bool', 'must', 'multi_match', 'fields', $fields);
+        }
+
         return $this
             ->set('query', 'bool', 'must', 'multi_match', 'query', $query)
             ->set('query', 'bool', 'must', 'multi_match', 'fields', $fields);
@@ -68,7 +74,43 @@ class Query implements QueryInterface, HighlightInterface
      */
     public function addQuery($type, array $query)
     {
+        if ($this->has('query', 'function_score')) {
+            return $this->set('query', 'function_score', 'query', 'bool', 'must', [$type => $query]);
+        }
+
         return $this->set('query', 'bool', 'must', [$type => $query]);
+    }
+
+    public function setFunctionScore(array $function)
+    {
+        if ($this->has('query') && !$this->has('query', 'function_score')) {
+            $q = $this->get('query');
+            $this->del('query');
+            $function['query'] = $q;
+        }
+
+        return $this->set('query', 'function_score', $function);
+    }
+
+    public function setDecayFunction(
+        $field,
+        $origin,
+        $scale,
+        $decay = 0.5,
+        $offset = null,
+        $type = 'gauss'
+    ) {
+        $params = [
+            'origin' => $origin,
+            'scale' => $scale,
+            'decay' => $decay,
+        ];
+
+        if ($offset) {
+            $params['offset'] = $offset;
+        }
+
+        return $this->setFunctionScore([$type => [$field => $params]]);
     }
 
     /**
@@ -79,6 +121,10 @@ class Query implements QueryInterface, HighlightInterface
      */
     public function addFilter($type, array $filter)
     {
+        if ($this->has('query', 'function_score')) {
+            return $this->add('query', 'function_score', 'query', 'bool', 'filter', [$type => $filter]);
+        }
+
         return $this->add('query', 'bool', 'filter', [$type => $filter]);
     }
 
@@ -155,6 +201,50 @@ class Query implements QueryInterface, HighlightInterface
         return $this->query['highlight']['post_tags'][0] ?? '<em>';
     }
 
+    protected function get()
+    {
+        $q = $this->query;
+        foreach (func_get_args() as $k) {
+            if (!isset($q[$k])) {
+                return null;
+            }
+
+            $q = $q[$k];
+        }
+
+        return $q;
+    }
+
+    protected function del()
+    {
+        $q = &$this->query;
+        $keys = func_get_args();
+        $lk = array_pop($keys);
+        foreach ($keys as $k) {
+            if (!isset($q[$k])) {
+                return;
+            }
+
+            $q = &$q[$k];
+        }
+
+        unset($q[$lk]);
+    }
+
+    protected function has()
+    {
+        $q = $this->query;
+        foreach (func_get_args() as $k) {
+            if (!isset($q[$k])) {
+                return false;
+            }
+
+            $q = $q[$k];
+        }
+
+        return true;
+    }
+
     protected function set()
     {
         $keys = func_get_args();
@@ -189,4 +279,3 @@ class Query implements QueryInterface, HighlightInterface
         return $this;
     }
 }
-

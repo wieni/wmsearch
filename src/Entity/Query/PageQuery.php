@@ -76,6 +76,44 @@ class PageQuery extends Query
         return $this->filterRange('changed', $start, $end);
     }
 
+    /**
+     * Decay the score of older items.
+     *
+     * @param string $halflife The difference between now and created at which
+     *                         the score should be halved.
+     *                         number + unit. e.g.: 60s, 60m, 24h or 31d
+     * @param string $algo     The algorithm: one of 'exp', 'linear' or 'gauss'
+     */
+    public function decayCreated($halflife = '10d', $algo = 'exp')
+    {
+        return $this->decay('created', $halflife, $algo);
+    }
+
+    /**
+     * Decay the score of older items.
+     *
+     * @param string $halflife The difference between now and created at which
+     *                         the score should be halved.
+     *                         number + unit. e.g.: 60s, 60m, 24h or 31d
+     * @param string $algo     The algorithm: one of 'exp', 'linear' or 'gauss'
+     */
+    public function decayChanged($halflife = '10d', $algo = 'exp')
+    {
+        return $this->decay('changed', $halflife, $algo);
+    }
+
+    protected function decay($field, $halflife = '10d', $algo = 'exp')
+    {
+        return $this->setDecayFunction(
+            $field,
+            time(),
+            $halflife,
+            0.5,
+            null,
+            $algo
+        );
+    }
+
     protected function filterRange($field, $start = null, $end = null)
     {
         $d = [];
