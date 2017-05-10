@@ -7,6 +7,7 @@ use Drupal\wmsearch\Entity\Query\QueryInterface;
 use Drupal\wmsearch\Entity\Query\HighlightInterface;
 use Drupal\wmsearch\Entity\Result\SearchResult;
 use Drupal\wmsearch\Exception\ApiException;
+use Drupal\wmsearch\Exception\NotIndexableException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\PumpStream;
 
@@ -35,15 +36,20 @@ class BaseApi
     public function addDoc(DocumentInterface $doc)
     {
         foreach ($doc->getElasticTypes() as $type) {
-            $this->put(
-                sprintf(
-                    '%s/%s/%s',
-                    $this->index,
-                    $type,
-                    $doc->getElasticId()
-                ),
-                $doc->toElasticArray($type)
-            );
+            try {
+                $arr = $doc->toElasticArray($type);
+                $this->put(
+                    sprintf(
+                        '%s/%s/%s',
+                        $this->index,
+                        $type,
+                        $doc->getElasticId()
+                    ),
+                    $arr
+                );
+            } catch (NotIndexableException $e) {
+                $this->delDoc($type, $doc->getElasticId());
+            }
         }
     }
 
@@ -66,7 +72,15 @@ class BaseApi
             }
 
             foreach ($doc->getElasticTypes() as $type) {
-                $_docs[] = ['type' => $type, 'doc' => $doc];
+                try {
+                    $_docs[] = [
+                        'type' => $type,
+                        'id' => $doc->getElasticId(),
+                        'arr' => $doc->toElasticArray($type),
+                    ];
+                } catch (NotIndexableException $e) {
+                    $this->delDoc($type, $doc->getElasticId());
+                }
             }
         }
 
@@ -84,12 +98,12 @@ class BaseApi
                     [
                         'index' => [
                             '_type' => $doc['type'],
-                            '_id' => $doc['doc']->getElasticId(),
+                            '_id' => $doc['id'],
                         ],
                     ]
                 ) .
                 "\n" .
-                json_encode($doc['doc']->toElasticArray($doc['type'])) .
+                json_encode($doc['arr']) .
                 "\n";
             }
         );
@@ -269,4 +283,3 @@ class BaseApi
         return $body;
     }
 }
-
