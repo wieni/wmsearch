@@ -13,6 +13,7 @@ services:
         class: 'Drupal\wmsearch\Service\Api'
         arguments:
             - '@app.root'
+            - '@event_dispatcher'
             - '@module_handler'
             - '%wmsearch.elastic.endpoint%'
             - '%wmsearch.elastic.index%'

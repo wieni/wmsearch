@@ -2,7 +2,10 @@
 
 namespace Drupal\wmsearch\Service;
 
+use Drupal\wmsearch\WmsearchEvents;
+use Drupal\wmsearch\Event\MappingEvent;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Api extends BaseApi
 {
@@ -10,8 +13,12 @@ class Api extends BaseApi
 
     protected $baseMapping;
 
+    /** @var EventDispatcherInterface */
+    protected $dispatcher;
+
     public function __construct(
         $appRoot,
+        EventDispatcherInterface $dispatcher,
         ModuleHandlerInterface $mh,
         $ep,
         $index,
@@ -21,6 +28,8 @@ class Api extends BaseApi
         $this->cwd = $appRoot .
             DIRECTORY_SEPARATOR .
             $mh->getModule('wmsearch')->getPath();
+
+        $this->dispatcher = $dispatcher;
     }
 
     public function createIndex($shards = 1, $replicas = 0)
@@ -58,7 +67,9 @@ class Api extends BaseApi
             throw new \RuntimeException('Could not fetch base mapping');
         }
 
-        return $this->baseMapping = $m;
+        $ev = new MappingEvent($m);
+        $this->dispatcher->dispatch(WmsearchEvents::MAPPING, $ev);
+
+        return $this->baseMapping = $ev->getMapping();
     }
 }
-
