@@ -2,6 +2,7 @@
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\wmsearch\Exception\ApiException;
+use Drupal\wmsearch\Entity\Document\DocumentInterface;
 use Drupal\Core\TypedData\TranslatableInterface;
 
 /**
@@ -9,6 +10,10 @@ use Drupal\Core\TypedData\TranslatableInterface;
  */
 function wmsearch_queue(EntityInterface $e, $allTranslations = false)
 {
+    if (!$e instanceof DocumentInterface) {
+        return;
+    }
+
     $languages = [$e->language()];
     if (
         $allTranslations
@@ -27,6 +32,7 @@ function wmsearch_queue(EntityInterface $e, $allTranslations = false)
                     'type' => $e->getEntityTypeId(),
                     'language' => $language->getId(),
                     'id' => $e->id(),
+                    'elasticId' => $e->getElasticId(),
                 ]
             );
     }
