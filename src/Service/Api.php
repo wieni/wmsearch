@@ -67,7 +67,7 @@ class Api extends BaseApi
             throw new \RuntimeException('Could not fetch base mapping');
         }
 
-        $ev = new MappingEvent($m);
+        $ev = new MappingEvent($m, $this->index);
         $this->dispatcher->dispatch(WmsearchEvents::MAPPING, $ev);
 
         return $this->baseMapping = $ev->getMapping();

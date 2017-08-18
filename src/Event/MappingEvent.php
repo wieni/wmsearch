@@ -7,10 +7,12 @@ use Symfony\Component\EventDispatcher\Event;
 class MappingEvent extends Event
 {
     protected $mapping;
+    protected $index;
 
-    public function __construct(array $mapping)
+    public function __construct(array $mapping, $index)
     {
         $this->mapping = $mapping;
+        $this->index = $index;
     }
 
     public function getMapping()
@@ -21,5 +23,10 @@ class MappingEvent extends Event
     public function setMapping($mapping)
     {
         $this->mapping = $mapping;
+    }
+
+    public function getIndex()
+    {
+        return $this->index;
     }
 }
