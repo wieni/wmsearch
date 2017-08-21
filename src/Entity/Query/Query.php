@@ -53,6 +53,13 @@ class Query implements QueryInterface, HighlightInterface
             ->set('query', 'bool', 'must', 'multi_match', 'fields', $fields);
     }
 
+    public function addAggregation($name, $key, $size = 1000)
+    {
+        return $this
+            ->set('aggs', $name, 'terms', 'field', $key)
+            ->set('aggs', $name, 'terms', 'size', $size);
+    }
+
     public function setSource($source = '*')
     {
         return $this->set('_source', $source);
