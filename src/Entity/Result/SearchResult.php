@@ -69,6 +69,18 @@ class SearchResult
         return $this->get('hits', 'max_score');
     }
 
+    public function getAggregation($name)
+    {
+        $aggregations = $this->get('aggregations', $name) ?? [];
+
+        $items = [];
+        foreach ($aggregations['buckets'] ?? [] as $item) {
+            $items[$item['key']] = $item['doc_count'];
+        }
+
+        return $items;
+    }
+
     protected function get()
     {
         $d = $this->data;
