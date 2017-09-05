@@ -8,7 +8,7 @@ class PageQuery extends Query
 {
     public function __construct(array $query = [])
     {
-        parent::__construct('page', $query);
+        parent::__construct($query, 'page');
     }
 
     public function complete($query, $fuzzy = 0)

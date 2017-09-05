@@ -221,19 +221,21 @@ class BaseApi
 
     protected function execQuery(QueryInterface $query)
     {
-        $docType = $query->getDocumentType();
-        if (!$docType) {
-            throw new \InvalidArgumentException(
-                'Query doesn\'t specify a document type'
+        $ep = sprintf(
+            '%s/_search',
+            $this->index
+        );
+
+        if ($docType = $query->getDocumentType()) {
+            $ep = sprintf(
+                '%s/%s/_search',
+                $this->index,
+                $docType
             );
         }
 
         return $this->post(
-            sprintf(
-                '%s/%s/_search',
-                $this->index,
-                $query->getDocumentType()
-            ),
+            $ep,
             $query->toArray()
         );
     }

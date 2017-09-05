@@ -7,7 +7,7 @@ class Query implements QueryInterface, HighlightInterface
     protected $query;
     protected $docType;
 
-    public function __construct($docType, array $query = [])
+    public function __construct(array $query = [], $docType = '')
     {
         $this->docType = $docType;
         $this->query = $query;
