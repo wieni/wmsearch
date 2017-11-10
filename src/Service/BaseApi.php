@@ -33,9 +33,11 @@ class BaseApi
         $this->timeout = $timeout;
     }
 
-    public function addDoc(DocumentInterface $doc)
+    public function addDoc(DocumentInterface $doc, array $docTypes = [])
     {
-        foreach ($doc->getElasticTypes() as $type) {
+        $docTypes = $docTypes ?: $doc->getElasticTypes();
+
+        foreach ($docTypes as $type) {
             try {
                 $arr = $doc->toElasticArray($type);
                 $this->put(
