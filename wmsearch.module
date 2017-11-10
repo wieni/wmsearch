@@ -33,6 +33,7 @@ function wmsearch_queue(EntityInterface $e, $allTranslations = false)
                     'language' => $language->getId(),
                     'id' => $e->id(),
                     'elasticId' => $e->getElasticId(),
+                    'types' => $e->getElasticTypes(),
                 ]
             );
     }
