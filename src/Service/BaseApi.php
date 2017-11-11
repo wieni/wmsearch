@@ -45,12 +45,12 @@ class BaseApi
                         '%s/%s/%s',
                         $this->index,
                         $type,
-                        $doc->getElasticId()
+                        $doc->getElasticId($type)
                     ),
                     $arr
                 );
             } catch (NotIndexableException $e) {
-                $this->delDoc($type, $doc->getElasticId());
+                $this->delDoc($type, $doc->getElasticId($type));
             }
         }
     }
@@ -77,11 +77,11 @@ class BaseApi
                 try {
                     $_docs[] = [
                         'type' => $type,
-                        'id' => $doc->getElasticId(),
+                        'id' => $doc->getElasticId($type),
                         'arr' => $doc->toElasticArray($type),
                     ];
                 } catch (NotIndexableException $e) {
-                    $this->delDoc($type, $doc->getElasticId());
+                    $this->delDoc($type, $doc->getElasticId($type));
                 }
             }
         }

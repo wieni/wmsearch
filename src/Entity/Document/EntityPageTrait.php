@@ -24,7 +24,7 @@ trait EntityPageTrait /* implements Drupal\Core\Entity\EntityInterface */
         return ['page'];
     }
 
-    final public function getElasticId()
+    public function getElasticId($type)
     {
         return wmsearch_entity_id($this);
     }

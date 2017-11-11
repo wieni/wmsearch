@@ -14,9 +14,10 @@ interface DocumentInterface
     /*
      * Returns the document/entity id.
      *
+     * @param $type The document type.
      * @return string|int
      */
-    public function getElasticId();
+    public function getElasticId($type);
 
     /**
      * Returns an elastic document array that must satisfy the
