@@ -1,7 +1,7 @@
 {
     "name": "wieni/wmsearch",
     "description": "Elasticsearch api",
-    "license": "GPLv3",
+    "license": "GPL-3.0-only",
     "authors": [
         {
             "name": "Wieni",
