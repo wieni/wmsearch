@@ -111,11 +111,11 @@
                 },
                 "created": {
                     "type": "date",
-                    "format: "epoch_second"
+                    "format": "epoch_second"
                 },
                 "changed": {
                     "type": "date",
-                    "format: "epoch_second"
+                    "format": "epoch_second"
                 }
             }
         }
