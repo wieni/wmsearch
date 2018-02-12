@@ -40,17 +40,27 @@ class Query implements QueryInterface, HighlightInterface
         return $this->set('from', (int) $from);
     }
 
-    public function addMultiMatch($query, array $fields = [])
+    public function addMultiMatch($query, array $fields = [], $operator = 'or', $minimumShouldMatch = null)
     {
         if ($this->has('query', 'function_score')) {
+            if (!empty($minimumShouldMatch)) {
+                $this->set('query', 'function_score', 'query', 'bool', 'must', 'multi_match', 'minimum_should_match', $minimumShouldMatch);
+            }
+
             return $this
                 ->set('query', 'function_score', 'query', 'bool', 'must', 'multi_match', 'query', $query)
-                ->set('query', 'function_score', 'query', 'bool', 'must', 'multi_match', 'fields', $fields);
+                ->set('query', 'function_score', 'query', 'bool', 'must', 'multi_match', 'fields', $fields)
+                ->set('query', 'function_score', 'query', 'bool', 'must', 'multi_match', 'operator', $operator);
+        }
+
+        if (!empty($minimumShouldMatch)) {
+            $this->set('query', 'bool', 'must', 'multi_match', 'minimum_should_match', $minimumShouldMatch);
         }
 
         return $this
             ->set('query', 'bool', 'must', 'multi_match', 'query', $query)
-            ->set('query', 'bool', 'must', 'multi_match', 'fields', $fields);
+            ->set('query', 'bool', 'must', 'multi_match', 'fields', $fields)
+            ->set('query', 'bool', 'must', 'multi_match', 'operator', $operator);
     }
 
     public function addAggregation($name, $key, $size = 1000)

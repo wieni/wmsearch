@@ -12,6 +12,9 @@ class QueryBuilder implements QueryBuilderInterface
     protected $fields = ['title', 'intro', 'body', 'terms'];
     protected $highlights = ['title', 'intro', 'body'];
 
+    protected $operator = 'or';
+    protected $minimumShouldMatch = null;
+
     public function build($query, $offset, $amount)
     {
         // return (new PageQuery())
@@ -28,7 +31,7 @@ class QueryBuilder implements QueryBuilderInterface
                 '<em>',
                 '</em>'
             )
-            ->addMultiMatch($query, $this->fields);
+            ->addMultiMatch($query, $this->fields, $this->operator, $this->minimumShouldMatch);
     }
 }
 
