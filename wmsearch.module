@@ -31,17 +31,17 @@ function wmsearch_queue(EntityInterface $e, $allTranslations = false)
         }
 
         $types = [];
-        foreach ($e->getElasticTypes() as $docType) {
-            $types[$docType] = $e->getElasticId($docType);
+        foreach ($translation->getElasticTypes() as $docType) {
+            $types[$docType] = $translation->getElasticId($docType);
         }
 
         \Drupal::service('queue')
             ->get('wmsearch.index')
             ->createItem(
                 [
-                    'type' => $e->getEntityTypeId(),
+                    'type' => $translation->getEntityTypeId(),
                     'language' => $language->getId(),
-                    'id' => $e->id(),
+                    'id' => $translation->id(),
                     'types' => $types,
                 ]
             );
