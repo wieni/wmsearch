@@ -62,8 +62,7 @@ class Indexer
             $condition($qb);
             $ids = $qb->execute();
 
-            $total = count($ids);
-            $c = 0;
+            $total = max($ids);
 
             foreach (array_chunk($ids, 50) as $chunk) {
                 $this->resetCaches();
@@ -135,29 +134,13 @@ class Indexer
         }
     }
 
-    private function indexDocument($entity)
+    protected function indexDocument($entity)
     {
         if (!$entity instanceof DocumentInterface) {
             return;
         }
 
-        $data['types'] = $entity->getElasticTypes();
-
-        // Separate 'related' type, we'll handle it differently
-        $types = array_diff($data['types'], ['related']);
-        if ($types) {
-            $this->index->addDoc($entity, $types);
-        }
-
-        $isDefaultLanguage = !$entity instanceOf TranslatableInterface
-            || !$entity->isTranslatable()
-            || $entity->isDefaultTranslation()
-            || count($entity->getTranslationLanguages()) === 1;
-
-        // Only index 'related' type in the default language
-        if ($isDefaultLanguage && in_array('related', $data['types'])) {
-            $this->index->addDoc($entity, ['related']);
-        }
+        $this->index->addDoc($entity, $entity->getElasticTypes());
     }
 
     private function resetCaches()
