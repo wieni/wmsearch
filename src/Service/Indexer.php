@@ -14,9 +14,9 @@ use GuzzleHttp\Exception\GuzzleException;
 class Indexer
 {
     /** @var EntityTypeManagerInterface */
-    private $entityTypeManager;
+    protected $entityTypeManager;
     /** @var Api */
-    private $index;
+    protected $index;
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,

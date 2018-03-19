@@ -1,6 +1,6 @@
 <?php
 
-function wmcustom_drush_command()
+function wmsearch_drush_command()
 {
     $commands['wmsearch-queue'] = [
         'description' => 'Whimsical Queuing of all entities',
@@ -20,7 +20,7 @@ function wmcustom_drush_command()
     return $commands;
 }
 
-function drush_wmcustom_wmsearch_queue()
+function drush_wmsearch_queue()
 {
     $from = drush_get_option('from') ?: 0;
     $limit = drush_get_option('limit') ?: 0;
@@ -29,7 +29,7 @@ function drush_wmcustom_wmsearch_queue()
     \Drupal::service('wmsearch.indexer')->queueAll($from, $limit, $offset);
 }
 
-function drush_wmcustom_wmsearch_purge()
+function drush_wmsearch_purge()
 {
     \Drupal::service('wmsearch.indexer')->purge();
 }
