@@ -67,7 +67,6 @@ class Indexer
             foreach (array_chunk($ids, 50) as $chunk) {
                 $this->resetCaches();
                 foreach ($chunk as $id) {
-                    $c++;
                     $entity = $storage->load($id);
                     printf(
                         "\033[0G\033[K%03d/%03d",
