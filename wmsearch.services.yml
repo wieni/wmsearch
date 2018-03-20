@@ -18,6 +18,12 @@ services:
             - '%wmsearch.elastic.endpoint%'
             - '%wmsearch.elastic.index%'
 
+    wmsearch.indexer:
+        class: 'Drupal\wmsearch\Service\Indexer'
+        arguments:
+            - '@entity_type.manager'
+            - '@wmsearch.api'
+
     wmsearch.base_api:
         class: 'Drupal\wmsearch\Service\BaseApi'
         arguments:
