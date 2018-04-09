@@ -10,6 +10,11 @@ class IndexCommands extends DrushCommands
     /** @var Indexer */
     protected $indexer;
 
+    public function __construct(Indexer $indexer)
+    {
+        $this->indexer = $indexer;
+    }
+
     /**
      * Whimsical queuing of all entities
      *
