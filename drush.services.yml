@@ -1,5 +1,5 @@
 services:
-  wmsearch.commands.index:
-    class: \Drupal\wmsearch\Commands\IndexCommands
-    arguments: ['@wmsearch.indexer']
-    tags: [{ name: drush.command }]
+    wmsearch.commands.index:
+        class: \Drupal\wmsearch\Commands\IndexCommands
+        arguments: ['@wmsearch.indexer']
+        tags: [{ name: drush.command }]
