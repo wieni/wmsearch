@@ -98,6 +98,15 @@ class Query implements QueryInterface, HighlightInterface
         return $this->set('query', 'bool', 'must', [$type => $query]);
     }
 
+    public function addNotQuery($type, array $query)
+    {
+        if ($this->has('query', 'function_score')) {
+            return $this->set('query', 'function_score', 'query', 'bool', 'must_not', [$type => $query]);
+        }
+
+        return $this->set('query', 'bool', 'must_not', [$type => $query]);
+    }
+
     public function setFunctionScore(array $function)
     {
         if ($this->has('query') && !$this->has('query', 'function_score')) {
