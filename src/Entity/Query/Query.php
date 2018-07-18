@@ -227,7 +227,7 @@ class Query implements QueryInterface, HighlightInterface
         return $this->query['highlight']['post_tags'][0] ?? '<em>';
     }
 
-    protected function get()
+    public function get()
     {
         $q = $this->query;
         foreach (func_get_args() as $k) {
@@ -241,7 +241,7 @@ class Query implements QueryInterface, HighlightInterface
         return $q;
     }
 
-    protected function del()
+    public function del()
     {
         $q = &$this->query;
         $keys = func_get_args();
@@ -257,7 +257,7 @@ class Query implements QueryInterface, HighlightInterface
         unset($q[$lk]);
     }
 
-    protected function has()
+    public function has()
     {
         $q = $this->query;
         foreach (func_get_args() as $k) {
@@ -271,7 +271,7 @@ class Query implements QueryInterface, HighlightInterface
         return true;
     }
 
-    protected function set()
+    public function set()
     {
         $keys = func_get_args();
         $value = array_pop($keys);
@@ -288,7 +288,7 @@ class Query implements QueryInterface, HighlightInterface
         return $this;
     }
 
-    protected function add()
+    public function add()
     {
         $keys = func_get_args();
         $value = array_pop($keys);
