@@ -88,7 +88,10 @@ class Indexer
 
     public function purge()
     {
-        $this->index->deleteIndex();
+        try {
+            $this->index->deleteIndex();
+        } catch (\Exception $e) {
+        }
         $this->index->createIndex();
     }
 
