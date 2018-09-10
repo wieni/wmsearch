@@ -17,7 +17,6 @@ class BaseApi
     protected $client;
     protected $ep;
     protected $index;
-    protected $timeout;
 
     public function __construct($ep, $index, $timeout = 10.0)
     {
@@ -29,8 +28,14 @@ class BaseApi
 
         $this->ep = $ep;
         $this->index = $index;
-        $this->client = new Client();
-        $this->timeout = $timeout;
+        $this->client = new Client([
+            'verify' => false,
+            'timeout' => $timeout,
+            'headers' => [
+                'content-type' => 'application/json',
+                'Accept' => 'application/json'
+            ],
+        ]);
     }
 
     public function addDoc(DocumentInterface $doc, array $docTypes = [])
@@ -40,17 +45,17 @@ class BaseApi
         foreach ($docTypes as $type) {
             try {
                 $arr = $doc->toElasticArray($type);
+                $arr['docType'] = $type;
                 $this->put(
                     sprintf(
-                        '%s/%s/%s',
+                        '%s/doc/%s',
                         $this->index,
-                        $type,
                         $doc->getElasticId($type)
                     ),
                     $arr
                 );
             } catch (NotIndexableException $e) {
-                $this->delDoc($type, $doc->getElasticId($type));
+                $this->delDoc($doc->getElasticId($type));
             }
         }
     }
@@ -81,7 +86,7 @@ class BaseApi
                         'arr' => $doc->toElasticArray($type),
                     ];
                 } catch (NotIndexableException $e) {
-                    $this->delDoc($type, $doc->getElasticId($type));
+                    $this->delDoc($doc->getElasticId($type));
                 }
             }
         }
@@ -97,16 +102,16 @@ class BaseApi
                 $i++;
 
                 return json_encode(
-                    [
-                        'index' => [
-                            '_type' => $doc['type'],
-                            '_id' => $doc['id'],
-                        ],
-                    ]
-                ) .
-                "\n" .
-                json_encode($doc['arr']) .
-                "\n";
+                        [
+                            'index' => [
+                                '_type' => 'doc',
+                                '_id' => $doc['id'],
+                            ],
+                        ]
+                    ) .
+                    "\n" .
+                    json_encode($doc['arr']) .
+                    "\n";
             }
         );
 
@@ -117,15 +122,15 @@ class BaseApi
         );
     }
 
-    public function getDoc($docType, $id)
+    public function getDoc($id)
     {
-        return $this->get(sprintf('%s/%s/%s', $this->index, $docType, $id));
+        return $this->get(sprintf('%s/doc/%s', $this->index, $id));
     }
 
-    public function delDoc($docType, $id)
+    public function delDoc($id)
     {
         try {
-            return $this->delete(sprintf('%s/%s/%s', $this->index, $docType, $id));
+            return $this->delete(sprintf('%s/doc/%s', $this->index, $id));
         } catch (ApiException $e) {
             if (!$e->isNotFound()) {
                 throw $e;
@@ -228,14 +233,6 @@ class BaseApi
             $this->index
         );
 
-        if ($docType = $query->getDocumentType()) {
-            $ep = sprintf(
-                '%s/%s/_search',
-                $this->index,
-                $docType
-            );
-        }
-
         return $this->post(
             $ep,
             $query->toArray()
@@ -268,7 +265,7 @@ class BaseApi
             $r = $this->client->request(
                 $method,
                 sprintf('%s/%s', $this->ep, $ep),
-                $options + ['timeout' => $this->timeout]
+                $options
             );
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             throw new ApiException(

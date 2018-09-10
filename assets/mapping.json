@@ -49,12 +49,15 @@
                 "enabled": false
             }
         },
-        "page": {
+        "doc": {
             "dynamic": false,
             "_all": {
                 "enabled": false
             },
             "properties": {
+                "docType": {
+                    "type": "keyword"
+                },
                 "type": {
                     "type": "text"
                 },

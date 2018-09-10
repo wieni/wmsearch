@@ -5,29 +5,15 @@ namespace Drupal\wmsearch\Entity\Query;
 class Query implements QueryInterface, HighlightInterface
 {
     protected $query;
-    protected $docType;
 
-    public function __construct(array $query = [], $docType = '')
+    public function __construct(array $query = [])
     {
-        $this->docType = $docType;
         $this->query = $query;
     }
 
     public function toArray()
     {
         return $this->query;
-    }
-
-    public function getDocumentType()
-    {
-        return $this->docType;
-    }
-
-    public function setDocumentType($docType)
-    {
-        $this->docType = $docType;
-
-        return $this;
     }
 
     public function size($size)

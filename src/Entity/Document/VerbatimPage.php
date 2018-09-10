@@ -64,7 +64,7 @@ class VerbatimPage extends AbstractPage
 
     public function getElasticId($type)
     {
-        return $this->id;
+        return sprintf('%s-%s', $type, $this->id);
     }
 
     public function toElasticArray($type)
