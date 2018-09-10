@@ -88,25 +88,25 @@
                 },
                 "title": {
                     "analyzer": "ngram",
-                    "search_analyzer": "standard",
+                    "search_analyzer": "ascii",
                     "type": "text",
                     "boost": 2
                 },
                 "terms": {
                     "analyzer": "ngram",
-                    "search_analyzer": "standard",
+                    "search_analyzer": "ascii",
                     "type": "text",
                     "boost": 1.5
                 },
                 "intro": {
                     "analyzer": "ngram",
-                    "search_analyzer": "standard",
+                    "search_analyzer": "ascii",
                     "type": "text",
                     "boost": 1.2
                 },
                 "body": {
                     "analyzer": "html",
-                    "search_analyzer": "standard",
+                    "search_analyzer": "ascii",
                     "type": "text"
                 },
                 "created": {
