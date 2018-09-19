@@ -17,5 +17,12 @@ interface QueryInterface
      * @return array
      */
     public function toArray();
+
+    /**
+     * Returns true when the query is a count query.
+     *
+     * @return bool
+     */
+    public function isCount();
 }
 

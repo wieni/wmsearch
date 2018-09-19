@@ -81,6 +81,17 @@ class SearchResult
         return $items;
     }
 
+    /** @return int */
+    public function getCount()
+    {
+        $count = $this->get('count');
+        if (is_null($count)) {
+            throw new \RuntimeException('::getCount can only be called on a count query');
+        }
+
+        return $count;
+    }
+
     protected function get()
     {
         $d = $this->data;

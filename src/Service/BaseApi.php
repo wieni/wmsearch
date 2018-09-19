@@ -224,15 +224,17 @@ class BaseApi
     protected function execQuery(QueryInterface $query)
     {
         $ep = sprintf(
-            '%s/_search',
-            $this->index
+            '%s/%s',
+            $this->index,
+            $query->isCount() ? '_count' : '_search'
         );
 
         if ($docType = $query->getDocumentType()) {
             $ep = sprintf(
-                '%s/%s/_search',
+                '%s/%s/%s',
                 $this->index,
-                $docType
+                $docType,
+                $query->isCount() ? '_count' : '_search'
             );
         }
 
