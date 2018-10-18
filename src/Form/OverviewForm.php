@@ -165,6 +165,7 @@ class OverviewForm extends FormBase
             '#type' => 'submit',
             '#value' => $this->t('Empty queue'),
             '#action' => 'queue_empty',
+            '#access' => $this->queue->numberOfItems() > 0,
         ];
     }
 
