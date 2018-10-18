@@ -76,5 +76,10 @@ class ApiException extends \RuntimeException
     {
         return $this->is('index_already_exists_exception');
     }
+
+    public function isIndexNotFound()
+    {
+        return $this->is('index_not_found_exception');
+    }
 }
 

@@ -102,7 +102,7 @@ function wmsearch_id($type, $language, $id)
 function wmsearch_rebuild()
 {
     try {
-        \Drupal::service('wmsearch.api')->createIndex();
+        \Drupal::service('wmsearch.api.index')->createIndex();
     } catch (ApiException $e) {
         \Drupal::logger('wmsearch')->error($e->getMessage());
     }

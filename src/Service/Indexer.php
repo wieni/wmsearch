@@ -9,21 +9,22 @@ use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\TypedData\TranslatableInterface;
 use Drupal\node\Entity\Node;
 use Drupal\wmsearch\Entity\Document\DocumentInterface;
+use Drupal\wmsearch\Service\Api\IndexApi;
 use GuzzleHttp\Exception\GuzzleException;
 
 class Indexer
 {
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
-    /** @var Api */
-    protected $index;
+    /** @var IndexApi */
+    protected $indexApi;
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,
-        Api $index
+        IndexApi $indexApi
     ) {
         $this->entityTypeManager = $entityTypeManager;
-        $this->index = $index;
+        $this->indexApi = $indexApi;
     }
 
     protected function getConditions($from, $limit, $offset)
@@ -89,10 +90,10 @@ class Indexer
     public function purge()
     {
         try {
-            $this->index->deleteIndex();
+            $this->indexApi->deleteIndex();
         } catch (\Exception $e) {
         }
-        $this->index->createIndex();
+        $this->indexApi->createIndex();
     }
 
     private function indexEntity(EntityInterface $entity)
@@ -142,7 +143,7 @@ class Indexer
             return;
         }
 
-        $this->index->addDoc($entity, $entity->getElasticTypes());
+        $this->indexApi->addDoc($entity, $entity->getElasticTypes());
     }
 
     private function resetCaches()

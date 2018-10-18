@@ -12,3 +12,13 @@ wmsearch.simple:
         _title: 'Search'
     requirements:
         _permission: 'access content'
+
+wmsearch.overview:
+    path: '/admin/config/search/wmsearch'
+    defaults:
+        _form: 'Drupal\wmsearch\Form\OverviewForm'
+        _title: 'Search'
+    requirements:
+        _permission: 'administer wmsearch'
+    options:
+        _admin_route: TRUE

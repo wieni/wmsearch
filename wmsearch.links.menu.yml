@@ -1,0 +1,4 @@
+wmsearch.overview:
+    title: 'Search'
+    route_name: wmsearch.overview
+    parent: system.admin_config_search
