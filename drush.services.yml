@@ -1,5 +1,10 @@
 services:
     wmsearch.commands.index:
         class: \Drupal\wmsearch\Commands\IndexCommands
-        arguments: ['@wmsearch.indexer']
+        arguments:
+            - '@wmsearch.indexer'
+            - '@wmsearch.api.index'
+            - '@wmsearch.api.reindex'
+            - '@wmsearch.api.task'
+            - '%wmsearch.elastic.index%'
         tags: [{ name: drush.command }]
