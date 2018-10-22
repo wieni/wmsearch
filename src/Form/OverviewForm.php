@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueInterface;
+use Drupal\Core\State\StateInterface;
 use Drupal\queue_ui\QueueUIBatch;
 use Drupal\wmcustom\Form\FormBase;
 use Drupal\wmsearch\Service\Api\AliasApi;
@@ -31,6 +32,8 @@ class OverviewForm extends FormBase
     protected $moduleHandler;
     /** @var MessengerInterface */
     protected $messenger;
+    /** @var StateInterface */
+    protected $state;
 
     public function __construct(
         string $indexName,
@@ -39,7 +42,8 @@ class OverviewForm extends FormBase
         Indexer $indexer,
         QueueFactory $queueFactory,
         ModuleHandlerInterface $moduleHandler,
-        MessengerInterface $messenger
+        MessengerInterface $messenger,
+        StateInterface $state
     ) {
         $this->indexName = $indexName;
         $this->aliasApi = $aliasApi;
@@ -48,6 +52,7 @@ class OverviewForm extends FormBase
         $this->queue = $queueFactory->get('wmsearch.index');
         $this->moduleHandler = $moduleHandler;
         $this->messenger = $messenger;
+        $this->state = $state;
     }
 
     public static function create(ContainerInterface $container)
@@ -59,7 +64,8 @@ class OverviewForm extends FormBase
             $container->get('wmsearch.indexer'),
             $container->get('queue'),
             $container->get('module_handler'),
-            $container->get('messenger')
+            $container->get('messenger'),
+            $container->get('state')
         );
     }
 
@@ -78,6 +84,7 @@ class OverviewForm extends FormBase
             '#type' => 'details',
             '#group' => 'tabs',
             '#title' => $this->t('Index'),
+            '#access' => $this->currentUser()->hasPermission('administer wmsearch index'),
         ];
 
         $this->buildIndexForm($form);
@@ -86,9 +93,19 @@ class OverviewForm extends FormBase
             '#type' => 'details',
             '#group' => 'tabs',
             '#title' => $this->t('Queue'),
+            '#access' => $this->currentUser()->hasPermission('administer wmsearch index'),
         ];
 
         $this->buildQueueForm($form);
+
+        $form['synonyms'] = [
+            '#type' => 'details',
+            '#group' => 'tabs',
+            '#title' => $this->t('Synonyms'),
+            '#access' => $this->currentUser()->hasPermission('administer wmsearch synonyms'),
+        ];
+
+        $this->buildSynonymsForm($form);
 
         return $form;
     }
@@ -169,6 +186,45 @@ class OverviewForm extends FormBase
         ];
     }
 
+    protected function buildSynonymsForm(array &$form)
+    {
+        $synonyms = $this->state->get('wmsearch.synonyms', []);
+
+        $form['synonyms']['explanation'] = [
+            '#type' => 'item',
+            '#markup' => sprintf('<p>%s</p>', $this->t('Please enter a list of synonyms, one per line.
+            A valid synonym is a comma-seperated list of words that should be considered equal when searching the website.')),
+        ];
+
+        $form['synonyms']['synonyms'] = [
+            '#type' => 'textarea',
+            '#rows' => 10,
+            '#default_value' => implode(PHP_EOL, $synonyms),
+        ];
+
+        $form['synonyms']['actions']['save_synonyms'] = [
+            '#type' => 'submit',
+            '#value' => $this->t('Save'),
+            '#action' => 'save_synonyms',
+        ];
+    }
+
+    public function validateForm(array &$form, FormStateInterface $form_state)
+    {
+        $synonyms = explode(PHP_EOL, $form_state->getValue('synonyms'));
+        $synonyms = array_map('trim', $synonyms);
+        $synonyms = array_filter($synonyms);
+
+        foreach ($synonyms as $synonym) {
+            if (!preg_match('/(\w+)(,\s*\w+)+/', $synonym)) {
+                $form_state->setErrorByName(
+                    'synonyms',
+                    $this->t('%synonym is not a valid synonym.', ['%synonym' => $synonym])
+                );
+            }
+        }
+    }
+
     public function submitForm(array &$form, FormStateInterface $formState)
     {
         $action = $formState->getTriggeringElement()['#action'];
@@ -185,6 +241,9 @@ class OverviewForm extends FormBase
                 break;
             case 'index_recreate':
                 $this->recreateIndex();
+                break;
+            case 'save_synonyms':
+                $this->saveSynonyms($formState);
                 break;
         }
     }
@@ -228,5 +287,21 @@ class OverviewForm extends FormBase
         $this->messenger->addStatus(
             $this->t('Successfully recreated index %indexName', ['%indexName' => $this->indexName])
         );
+    }
+
+    protected function saveSynonyms(FormStateInterface $formState)
+    {
+        $synonyms = explode(PHP_EOL, $formState->getValue('synonyms'));
+        $synonyms = array_map('trim', $synonyms);
+        $synonyms = array_filter($synonyms);
+
+        if ($synonyms == $this->state->get('wmsearch.synonyms')) {
+            $this->messenger->addStatus($this->t('Nothing changed.'));
+            return;
+        }
+
+        $this->state->set('wmsearch.synonymsChanged', true);
+        $this->state->set('wmsearch.synonyms', $synonyms);
+        $this->messenger->addStatus($this->t('Successfully saved synonyms.'));
     }
 }

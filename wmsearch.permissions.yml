@@ -1,3 +1,7 @@
-administer wmsearch:
+administer wmsearch index:
     title: 'Administer wmsearch'
     description: 'Fill, empty and run the Drupal queue and purge the Elasticsearch index'
+
+administer wmsearch synonyms:
+    title: 'Administer wmsearch synonyms'
+    description: 'Edit the list of synonyms'

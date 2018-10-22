@@ -66,7 +66,7 @@ class IndexApi extends BaseApi
             return $this->baseMapping;
         }
 
-        $m = json_decode(
+        $mapping = json_decode(
             file_get_contents(
                 $this->cwd .
                 DIRECTORY_SEPARATOR .
@@ -77,14 +77,17 @@ class IndexApi extends BaseApi
             true
         );
 
-        if (!$m) {
+        if (!$mapping) {
             throw new \RuntimeException('Could not fetch base mapping');
         }
 
-        $ev = new MappingEvent($m);
-        $this->eventDispatcher->dispatch(WmsearchEvents::MAPPING, $ev);
+        $synonyms = \Drupal::state()->get('wmsearch.synonyms', ['temp, temp']);
+        $mapping['settings']['analysis']['filter']['synonym']['synonyms'] = $synonyms;
 
-        return $this->baseMapping = $ev->getMapping();
+        $event = new MappingEvent($mapping);
+        $this->eventDispatcher->dispatch(WmsearchEvents::MAPPING, $event);
+
+        return $this->baseMapping = $event->getMapping();
     }
 
     public function createIndex($recreate = false)
@@ -263,6 +266,21 @@ class IndexApi extends BaseApi
         }
 
         return $this;
+    }
+
+    public function setSynonyms(array $synonyms)
+    {
+        $this->put($this->index, [
+            'settings' => [
+                'index' => [
+                    'analysis' => [
+                        'filter' => [
+                            'synonym' => [],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     public function getIndexName()
