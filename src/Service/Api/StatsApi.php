@@ -8,14 +8,15 @@ class StatsApi extends BaseApi
     protected $aliasApi;
 
     public function __construct(
-        string $endpoint,
+        $endpoint,
         AliasApi $aliasApi
     ) {
         parent::__construct($endpoint);
         $this->aliasApi = $aliasApi;
     }
 
-    public function getStats(string $indexName = null)
+    /** @param string|null $indexName */
+    public function getStats($indexName = null)
     {
         if (!$indexName) {
             return $this->get('_stats');

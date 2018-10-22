@@ -8,14 +8,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class TaskApi extends BaseApi
 {
-    public function getTask(string $id)
+    /** @param string $id */
+    public function getTask($id)
     {
         return $this->get(
             sprintf('_tasks/%s', $id)
         );
     }
 
-    public function waitForCompletion(string $id)
+    /** @param string $id */
+    public function waitForCompletion($id)
     {
         $output = class_exists('Drush\Drush') && Drush::hasContainer()
             ? Drush::output()

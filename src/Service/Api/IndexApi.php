@@ -33,9 +33,9 @@ class IndexApi extends BaseApi
     protected $taskApi;
 
     public function __construct(
-        string $endpoint,
-        string $appRoot,
-        string $index,
+        $endpoint,
+        $appRoot,
+        $index,
         ModuleHandlerInterface $moduleHandler,
         EventDispatcherInterface $eventDispatcher,
         FileSystem $fileSystem,
@@ -270,7 +270,8 @@ class IndexApi extends BaseApi
         return $this->index;
     }
 
-    public function setIndexName(string $index)
+    /** @param string $index */
+    public function setIndexName($index)
     {
         $this->index = $index;
     }

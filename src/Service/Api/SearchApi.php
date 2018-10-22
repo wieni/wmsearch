@@ -13,8 +13,8 @@ class SearchApi extends BaseApi
     protected $index;
 
     public function __construct(
-        string $endpoint,
-        string $index
+        $endpoint,
+        $index
     ) {
         parent::__construct($endpoint);
 
@@ -27,12 +27,14 @@ class SearchApi extends BaseApi
         $this->index = $index;
     }
 
-    public function search(QueryInterface $query): SearchResult
+    /** @return SearchResult */
+    public function search(QueryInterface $query)
     {
         return new SearchResult($this->execQuery($query));
     }
 
-    public function highlightSearch(HighlightInterface $query): SearchResult
+    /** @return SearchResult */
+    public function highlightSearch(HighlightInterface $query)
     {
         if (!$query->hasHighlight()) {
             return $this->search($query);

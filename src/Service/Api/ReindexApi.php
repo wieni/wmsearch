@@ -4,7 +4,12 @@ namespace Drupal\wmsearch\Service\Api;
 
 class ReindexApi extends BaseApi
 {
-    public function reindex(string $sourceIndex, string $destIndex, array $types = ['page'])
+    /**
+     * @param string $sourceIndex
+     * @param string $destIndex
+     * @param array $types
+     */
+    public function reindex($sourceIndex, $destIndex, array $types = ['page'])
     {
         $result = $this->post('_reindex?wait_for_completion=false', [
             'source' => [

@@ -4,7 +4,8 @@ namespace Drupal\wmsearch\Service\Api;
 
 class AliasApi extends BaseApi
 {
-    public function aliasExists(string $alias)
+    /** @param string $alias */
+    public function aliasExists($alias)
     {
         foreach ($this->getAliases() as $index => $info) {
             if (isset($info['aliases'][$alias])) {
@@ -15,7 +16,8 @@ class AliasApi extends BaseApi
         return false;
     }
 
-    public function getAliases(string $index = null)
+    /** @param string|null $index */
+    public function getAliases($index = null)
     {
         if ($index) {
             return $this->get(sprintf('%s/_alias/*', $index));
@@ -24,7 +26,8 @@ class AliasApi extends BaseApi
         return $this->get(sprintf('_alias/*'));
     }
 
-    public function getIndexName(string $alias)
+    /** @param string $alias */
+    public function getIndexName($alias)
     {
         $aliases = $this->getAliases($alias);
         return array_keys($aliases)[0] ?? null;
@@ -41,7 +44,11 @@ class AliasApi extends BaseApi
         $this->post('_aliases', compact('actions'));
     }
 
-    public function addAlias(string $index, string $alias)
+    /**
+     * @param string $index
+     * @param string $alias
+     */
+    public function addAlias($index, $alias)
     {
         $this->addAliases([$index => $alias]);
     }
@@ -57,7 +64,11 @@ class AliasApi extends BaseApi
         $this->post('_aliases', compact('actions'));
     }
 
-    public function removeAlias(string $index, string $alias)
+    /**
+     * @param string $index
+     * @param string $alias
+     */
+    public function removeAlias($index, $alias)
     {
         $this->removeAliases([$index => $alias]);
     }
