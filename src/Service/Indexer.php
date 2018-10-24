@@ -2,15 +2,11 @@
 
 namespace Drupal\wmsearch\Service;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
-use Drupal\Core\TypedData\TranslatableInterface;
-use Drupal\node\Entity\Node;
 use Drupal\wmsearch\Entity\Document\DocumentInterface;
 use Drupal\wmsearch\Service\Api\IndexApi;
-use GuzzleHttp\Exception\GuzzleException;
 
 class Indexer
 {
@@ -103,56 +99,6 @@ class Indexer
         } catch (\Exception $e) {
         }
         $this->indexApi->createIndex();
-    }
-
-    private function indexEntity(EntityInterface $entity)
-    {
-        static $fails;
-
-        $retries = 3;
-
-        if (!isset($fails)) {
-            $fails = 0;
-        }
-
-        try {
-            if ($entity instanceof TranslatableInterface) {
-                $this->indexTranslations($entity);
-                return;
-            }
-
-            $this->indexDocument($entity);
-        } catch (GuzzleException $e) {
-            $fails++;
-            if ($fails >= $retries) {
-                throw $e;
-            }
-            dump($e->getMessage());
-            sleep(1);
-            $this->indexEntity($entity);
-            return;
-        }
-        $fails = 0;
-    }
-
-    private function indexTranslations(TranslatableInterface $entity)
-    {
-        foreach ($entity->getTranslationLanguages() as $langId => $_) {
-            $translation = $entity->getTranslation($langId);
-            if ($translation instanceof Node && !$translation->isPublished()) {
-                continue;
-            }
-            $this->indexDocument($translation);
-        }
-    }
-
-    protected function indexDocument($entity)
-    {
-        if (!$entity instanceof DocumentInterface) {
-            return;
-        }
-
-        $this->indexApi->addDoc($entity, $entity->getElasticTypes());
     }
 
     private function resetCaches()
