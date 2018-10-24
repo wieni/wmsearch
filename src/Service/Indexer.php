@@ -40,6 +40,15 @@ class Indexer
                 }
                 $qb->sort('nid', 'DESC');
             },
+            'taxonomy_term' => function (QueryInterface $qb) use ($from, $limit, $offset) {
+                if ($from) {
+                    $qb->condition('tid', $from, '<=');
+                }
+                if ($limit) {
+                    $qb->range($offset, $limit);
+                }
+                $qb->sort('tid', 'DESC');
+            },
         ];
     }
 
