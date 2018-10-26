@@ -28,7 +28,7 @@ class IndexCommands extends DrushCommands
         IndexApi $indexApi,
         ReindexApi $reindexApi,
         TaskApi $taskApi,
-        string $defaultIndex
+        $defaultIndex
     ) {
         $this->indexer = $indexer;
         $this->indexApi = $indexApi;
@@ -68,8 +68,12 @@ class IndexCommands extends DrushCommands
      *
      * @command wmsearch:reindex
      * @aliases wmsearch-reindex,wmsri
+     * 
+     * @param string $sourceIndex
+     * @param string $destIndex
+     * @param array $options
      */
-    public function reindex(string $sourceIndex, string $destIndex, $options = ['types' => 'page'])
+    public function reindex($sourceIndex, $destIndex, $options = ['types' => 'page'])
     {
         $types = explode(',', $options['types']);
         $types = array_map('trim', $types);
@@ -89,8 +93,11 @@ class IndexCommands extends DrushCommands
      * @aliases wmsearch-index-create,wmsc
      *
      * @option recreate
+     *
+     * @param string $index
+     * @param array $options
      */
-    public function indexCreate(string $index, $options = ['recreate' => false])
+    public function indexCreate($index, $options = ['recreate' => false])
     {
         if ($this->indexApi->indexExists() && !$options['recreate']) {
             $this->logger()->warning(
