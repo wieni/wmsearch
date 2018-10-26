@@ -23,7 +23,7 @@ class StatsApi extends BaseApi
         }
 
         if ($alias = $this->aliasApi->getIndexName($indexName)) {
-            [$alias, $indexName] = [$indexName, $alias];
+            list($alias, $indexName) = [$indexName, $alias];
         }
 
         $response = $this->get(
