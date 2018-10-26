@@ -99,7 +99,7 @@ class OverviewForm extends FormBase
         $indexName = $this->indexName;
 
         if ($alias = $this->aliasApi->getIndexName($indexName)) {
-            [$alias, $indexName] = [$indexName, $alias];
+            list($alias, $indexName) = [$indexName, $alias];
         }
 
         $form['index']['index_name'] = [
