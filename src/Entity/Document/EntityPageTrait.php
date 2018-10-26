@@ -7,14 +7,29 @@ namespace Drupal\wmsearch\Entity\Document;
  */
 trait EntityPageTrait /* implements Drupal\Core\Entity\EntityInterface */
 {
+    /**
+     * @return string|int|null
+     */
     abstract public function id();
 
+    /**
+     * @return string
+     */
     abstract public function getEntityTypeId();
 
+    /**
+     * @return string
+     */
     abstract public function bundle();
 
+    /**
+     * @return \Drupal\Core\Url
+     */
     abstract public function toUrl($rel = 'canonical', array $options = []);
 
+    /**
+     * @return \Drupal\Core\Language\LanguageInterface
+     */
     abstract public function language();
 
     abstract public function toElasticArray($type);
