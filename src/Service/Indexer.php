@@ -2,6 +2,7 @@
 
 namespace Drupal\wmsearch\Service;
 
+use Drupal\Core\Entity\ContentEntityTypeInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
@@ -50,10 +51,19 @@ class Indexer
 
     protected function getStorages()
     {
-        return [
-            $this->entityTypeManager->getStorage('node'),
-            $this->entityTypeManager->getStorage('taxonomy_term'),
-        ];
+        $entityTypeIds = [];
+        foreach ($this->entityTypeManager->getDefinitions() as $definition) {
+            if ($definition instanceof ContentEntityTypeInterface) {
+                $entityTypeIds[] = $definition->id();
+            }
+        }
+
+        return array_map(
+            function ($entityTypeId) {
+                return $this->entityTypeManager->getStorage($entityTypeId);
+            },
+            $entityTypeIds
+        );
     }
 
     public function queueAll($from, $limit, $offset)
@@ -68,16 +78,18 @@ class Indexer
             $condition($qb);
             $ids = $qb->execute();
 
-            $total = max($ids);
-
+            $total = count($ids);
+            $i = 0;
             foreach (array_chunk($ids, 50) as $chunk) {
                 $this->resetCaches();
                 foreach ($chunk as $id) {
                     $entity = $storage->load($id);
                     printf(
-                        "\033[0G\033[K%03d/%03d",
+                        "\033[0G\033[K%03d/%03d (%s) - %s",
+                        ++$i,
+                        $total,
                         $id,
-                        $total
+                        $entity->label()
                     );
 
                     if (!$entity instanceof DocumentInterface) {
