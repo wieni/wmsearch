@@ -19,6 +19,6 @@ wmsearch.overview:
         _form: 'Drupal\wmsearch\Form\OverviewForm'
         _title: 'Search'
     requirements:
-        _permission: 'administer wmsearch'
+        _permission: 'administer wmsearch index+administer wmsearch synonyms'
     options:
         _admin_route: TRUE
