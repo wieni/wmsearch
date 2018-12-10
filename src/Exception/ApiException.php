@@ -74,7 +74,8 @@ class ApiException extends \RuntimeException
 
     public function isIndexExists()
     {
-        return $this->is('index_already_exists_exception');
+        return $this->is('index_already_exists_exception')
+            || $this->is('resource_already_exists_exception');
     }
 }
 
