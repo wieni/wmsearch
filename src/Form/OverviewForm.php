@@ -3,15 +3,14 @@
 namespace Drupal\wmsearch\Form;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\queue_ui\QueueUIBatch;
-use Drupal\wmcustom\Form\FormBase;
 use Drupal\wmsearch\Service\Api\AliasApi;
-use Drupal\wmsearch\Service\Api\IndexApi;
 use Drupal\wmsearch\Service\Api\StatsApi;
 use Drupal\wmsearch\Service\Indexer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
