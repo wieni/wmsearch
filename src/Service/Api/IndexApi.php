@@ -277,21 +277,6 @@ class IndexApi extends BaseApi
         return array_values($data)[0]['mappings']['page'] ?? [];
     }
 
-    public function setSynonyms(array $synonyms)
-    {
-        $this->put($this->index, [
-            'settings' => [
-                'index' => [
-                    'analysis' => [
-                        'filter' => [
-                            'synonym' => [],
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-    }
-
     public function getIndexName()
     {
         return $this->index;
