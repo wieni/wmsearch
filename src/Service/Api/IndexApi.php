@@ -268,6 +268,15 @@ class IndexApi extends BaseApi
         return $this;
     }
 
+    public function getMapping()
+    {
+        $data = $this->get(
+            sprintf('%s/_mapping', $this->index)
+        );
+
+        return array_values($data)[0]['mappings']['page'] ?? [];
+    }
+
     public function setSynonyms(array $synonyms)
     {
         $this->put($this->index, [

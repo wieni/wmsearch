@@ -5,3 +5,7 @@ administer wmsearch index:
 administer wmsearch synonyms:
     title: 'Administer wmsearch synonyms'
     description: 'Edit the list of synonyms'
+
+administer wmsearch age decay:
+    title: 'Administer wmsearch age decay settings'
+    description: 'Edit the settings of the age decay feature'
