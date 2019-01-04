@@ -30,8 +30,7 @@ class QueryBuilder implements QueryBuilderInterface
                 $this->highlights,
                 '<em>',
                 '</em>'
-            )
-            ->addMultiMatch($query, $this->fields, $this->operator, $this->minimumShouldMatch);
+            );
 
         $decay = \Drupal::state()->get('wmsearch.decay', []);
 
@@ -45,6 +44,8 @@ class QueryBuilder implements QueryBuilderInterface
                 $decay['function'] ?? 'exp'
             );
         }
+
+        $query->addMultiMatch($query, $this->fields, $this->operator, $this->minimumShouldMatch);
 
         return $query;
     }
