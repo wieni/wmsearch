@@ -11,6 +11,7 @@ use Drupal\Core\Queue\QueueInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\queue_ui\QueueUIBatch;
 use Drupal\wmsearch\Service\Api\AliasApi;
+use Drupal\wmsearch\Service\Api\IndexApi;
 use Drupal\wmsearch\Service\Api\StatsApi;
 use Drupal\wmsearch\Service\Indexer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -19,6 +20,8 @@ class OverviewForm extends FormBase
 {
     /** @var string */
     protected $indexName;
+    /** @var IndexApi */
+    protected $indexApi;
     /** @var AliasApi */
     protected $aliasApi;
     /** @var StatsApi */
@@ -36,6 +39,7 @@ class OverviewForm extends FormBase
 
     public function __construct(
         string $indexName,
+        IndexApi $indexApi,
         AliasApi $aliasApi,
         StatsApi $statsApi,
         Indexer $indexer,
@@ -45,6 +49,7 @@ class OverviewForm extends FormBase
         StateInterface $state
     ) {
         $this->indexName = $indexName;
+        $this->indexApi = $indexApi;
         $this->aliasApi = $aliasApi;
         $this->statsApi = $statsApi;
         $this->indexer = $indexer;
@@ -58,6 +63,7 @@ class OverviewForm extends FormBase
     {
         return new static(
             $container->getParameter('wmsearch.elastic.index'),
+            $container->get('wmsearch.api.index'),
             $container->get('wmsearch.api.alias'),
             $container->get('wmsearch.api.stats'),
             $container->get('wmsearch.indexer'),
@@ -105,6 +111,15 @@ class OverviewForm extends FormBase
         ];
 
         $this->buildSynonymsForm($form);
+
+        $form['decay'] = [
+            '#type' => 'details',
+            '#group' => 'tabs',
+            '#title' => $this->t('Age decay'),
+            '#access' => $this->currentUser()->hasPermission('administer wmsearch age decay'),
+        ];
+
+        $this->buildDecayForm($form);
 
         return $form;
     }
@@ -208,6 +223,91 @@ class OverviewForm extends FormBase
         ];
     }
 
+    protected function buildDecayForm(array &$form)
+    {
+        $settings = $this->state->get('wmsearch.decay', []);
+        $mapping = $this->indexApi->getMapping();
+
+        $form['decay']['#tree'] = true;
+
+        $form['decay']['description'] = [
+            '#markup' => sprintf('<p>%s</p>', $this->t('By enabling this, newer content will be considered 
+            more relevant than older content and thus will appear higher in the search results. 
+            Below settings can be tweaked to change how severe older content gets punished.'))
+        ];
+
+        $form['decay']['enabled'] = [
+            '#type' => 'checkbox',
+            '#title' => $this->t('Enabled'),
+            '#default_value' => $settings['enabled'] ?? false,
+            '#required' => false,
+        ];
+
+        $form['decay']['function'] = [
+            '#type' => 'select',
+            '#title' => $this->t('Decay function'),
+            '#options' => [
+                'exp' => 'exp (Exponential decay)',
+                'gaus' => 'gaus (Normal decay)',
+                'linear' => 'linear (Linear decay)',
+            ],
+            '#description' => $this->t('Determines the shape of the decay'),
+            '#default_value' => $settings['function'] ?? 'exp',
+            '#required' => true,
+        ];
+
+        $form['decay']['scale'] = [
+            '#type' => 'textfield',
+            '#title' => $this->t('Scale'),
+            '#default_value' => $settings['scale'] ?? '5d',
+            '#description' => 'For how long do we want to decay documents?',
+            '#required' => true,
+        ];
+
+        $form['decay']['decay'] = [
+            '#type' => 'textfield',
+            '#title' => $this->t('Decay'),
+            '#default_value' => $settings['decay'] ?? '0.5',
+            '#description' => 'How severe do we want to decay documents?',
+            '#required' => true,
+        ];
+
+        $form['decay']['offset'] = [
+            '#type' => 'textfield',
+            '#title' => $this->t('Offset'),
+            '#default_value' => $settings['offset'] ?? '0d',
+            '#description' => 'How old does a document has to be before it starts to decay?',
+            '#required' => false,
+        ];
+
+        $form['decay']['field'] = [
+            '#type' => 'select',
+            '#title' => $this->t('Field'),
+            '#description' => 'The date field to use as age.',
+            '#default_value' => $settings['field'] ?? 'created',
+            '#required' => false,
+        ];
+
+        if (isset($mapping['properties'])) {
+            $properties = array_keys(
+                array_filter(
+                    $mapping['properties'],
+                    function (array $property) {
+                        return $property['type'] === 'date';
+                    }
+                )
+            );
+
+            $form['decay']['field']['#options'] = array_combine($properties, $properties);
+        }
+
+        $form['decay']['actions']['save_decay'] = [
+            '#type' => 'submit',
+            '#value' => $this->t('Save'),
+            '#action' => 'save_decay',
+        ];
+    }
+
     public function validateForm(array &$form, FormStateInterface $form_state)
     {
         $synonyms = explode(PHP_EOL, $form_state->getValue('synonyms'));
@@ -243,6 +343,9 @@ class OverviewForm extends FormBase
                 break;
             case 'save_synonyms':
                 $this->saveSynonyms($formState);
+                break;
+            case 'save_decay':
+                $this->saveDecay($formState);
                 break;
         }
     }
@@ -302,5 +405,14 @@ class OverviewForm extends FormBase
         $this->state->set('wmsearch.synonymsChanged', true);
         $this->state->set('wmsearch.synonyms', $synonyms);
         $this->messenger->addStatus($this->t('Successfully saved synonyms.'));
+    }
+
+    protected function saveDecay(FormStateInterface $formState)
+    {
+        $values = $formState->getValue('decay');
+        unset($values['actions']);
+
+        $this->state->set('wmsearch.decay', $values);
+        $this->messenger->addStatus($this->t('Successfully saved decay settings.'));
     }
 }
