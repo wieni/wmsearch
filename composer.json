@@ -13,5 +13,12 @@
     "type": "drupal-module",
     "require": {
         "guzzlehttp/guzzle": "^6.1"
+    },
+    "extra": {
+        "drush": {
+            "services": {
+                "drush.services.yml": "^9"
+            }
+        }
     }
 }
