@@ -21,7 +21,7 @@ class QueryBuilder implements QueryBuilderInterface
         //     ->setSource('title')
         //     ->complete($query);
 
-        $query = (new PageQuery())
+        $pageQuery = (new PageQuery())
             ->from($offset)
             ->size($amount)
             ->setHighlight(
@@ -35,7 +35,7 @@ class QueryBuilder implements QueryBuilderInterface
         $decay = \Drupal::state()->get('wmsearch.decay', []);
 
         if ($decay['enabled'] ?? false) {
-            $query->setDecayFunction(
+            $pageQuery->setDecayFunction(
                 $decay['field'] ?? 'created',
                 time(),
                 $decay['scale'] ?? '5d',
@@ -45,9 +45,9 @@ class QueryBuilder implements QueryBuilderInterface
             );
         }
 
-        $query->addMultiMatch($query, $this->fields, $this->operator, $this->minimumShouldMatch);
+        $pageQuery->addMultiMatch($query, $this->fields, $this->operator, $this->minimumShouldMatch);
 
-        return $query;
+        return $pageQuery;
     }
 }
 
