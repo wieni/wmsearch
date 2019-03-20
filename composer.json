@@ -8,11 +8,20 @@
             "email": "info@wieni.be"
         }
     ],
+    "repositories": {
+        "drupal-composer": {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "type": "drupal-module",
     "require": {
-        "guzzlehttp/guzzle": "^6.1"
+        "php": ">=7.0.0",
+        "drupal/core": "^8",
+        "guzzlehttp/guzzle": "^6.1",
+        "wieni/wmmodel": "^0.3"
     },
     "extra": {
         "drush": {
@@ -20,5 +29,8 @@
                 "drush.services.yml": "^9"
             }
         }
+    },
+    "suggest": {
+        "drupal/queue_ui": "to be able to fill and process the queue through the admin interface"
     }
 }

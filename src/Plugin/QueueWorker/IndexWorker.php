@@ -2,11 +2,9 @@
 
 namespace Drupal\wmsearch\Plugin\QueueWorker;
 
-use Drupal\Core\Queue\SuspendQueueException;
-use Drupal\wmsearch\Service\Api;
+use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\wmsearch\Entity\Document\DocumentInterface;
 
-use Drupal\node\NodeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
@@ -71,7 +69,7 @@ class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInter
         if (
             !$entity
             || !($entity instanceof DocumentInterface)
-            || ($entity instanceof NodeInterface && !$entity->isPublished())
+            || ($entity instanceof EntityPublishedInterface && !$entity->isPublished())
         ) {
             if ($elasticId = $data['types']['page'] ?? '') {
                 $this->indexApi->delDoc('page', $elasticId);
