@@ -59,9 +59,9 @@ class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInter
         $entity = $this->entityTypeManager->getStorage($data['type'])->load($data['id']);
 
         if (
-            $entity
-            && $entity instanceof TranslatableInterface
+            $entity instanceof TranslatableInterface
             && $entity->language()->getId() !== $data['language']
+            && $entity->hasTranslation($data['language'])
         ) {
             $entity = $entity->getTranslation($data['language']);
         }
