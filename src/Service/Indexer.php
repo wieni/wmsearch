@@ -92,10 +92,6 @@ class Indexer
                         $entity->label()
                     );
 
-                    if (!$entity instanceof DocumentInterface) {
-                        continue;
-                    }
-
                     wmsearch_queue($entity, true);
                 }
             }
