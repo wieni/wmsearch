@@ -69,6 +69,18 @@ class SearchResult
         return $this->get('hits', 'max_score');
     }
 
+    public function getAggregations()
+    {
+        $names = array_keys($this->get('aggregations') ?? []);
+
+        return array_map(
+            function (string $name) {
+                return $this->getAggregation($name);
+            },
+            array_combine($names, $names)
+        );
+    }
+
     public function getAggregation($name)
     {
         $aggregations = $this->get('aggregations', $name) ?? [];
