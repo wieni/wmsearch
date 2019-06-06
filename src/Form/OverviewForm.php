@@ -166,7 +166,10 @@ class OverviewForm extends FormBase
         $form['index']['actions']['index_recreate'] = [
             '#type' => 'submit',
             '#value' => 'Recreate index',
-            '#action' => 'index_recreate',
+            '#name' => 'index_recreate',
+            '#submit' => [
+                [$this, 'recreateIndex'],
+            ],
         ];
     }
 
@@ -181,13 +184,19 @@ class OverviewForm extends FormBase
         $form['queue']['actions']['queue_fill'] = [
             '#type' => 'submit',
             '#value' => $this->t('Fill queue'),
-            '#action' => 'queue_fill',
+            '#name' => 'queue_fill',
+            '#submit' => [
+                [$this, 'fillQueue'],
+            ],
         ];
 
         $form['queue']['actions']['queue_run'] = [
             '#type' => 'submit',
             '#value' => $this->t('Run queue'),
-            '#action' => 'queue_run',
+            '#name' => 'queue_run',
+            '#submit' => [
+                [$this, 'runQueue'],
+            ],
             '#access' => $this->moduleHandler->moduleExists('queue_ui')
                 && $this->queue->numberOfItems() > 0,
         ];
@@ -195,7 +204,10 @@ class OverviewForm extends FormBase
         $form['queue']['actions']['queue_empty'] = [
             '#type' => 'submit',
             '#value' => $this->t('Empty queue'),
-            '#action' => 'queue_empty',
+            '#name' => 'queue_empty',
+            '#submit' => [
+                [$this, 'emptyQueue'],
+            ],
             '#access' => $this->queue->numberOfItems() > 0,
         ];
     }
@@ -219,7 +231,10 @@ class OverviewForm extends FormBase
         $form['synonyms']['actions']['save_synonyms'] = [
             '#type' => 'submit',
             '#value' => $this->t('Save'),
-            '#action' => 'save_synonyms',
+            '#name' => 'save_synonyms',
+            '#submit' => [
+                [$this, 'saveSynonyms'],
+            ],
         ];
     }
 
@@ -304,7 +319,10 @@ class OverviewForm extends FormBase
         $form['decay']['actions']['save_decay'] = [
             '#type' => 'submit',
             '#value' => $this->t('Save'),
-            '#action' => 'save_decay',
+            '#name' => 'save_decay',
+            '#submit' => [
+                [$this, 'saveDecay'],
+            ],
         ];
     }
 
@@ -326,31 +344,9 @@ class OverviewForm extends FormBase
 
     public function submitForm(array &$form, FormStateInterface $formState)
     {
-        $action = $formState->getTriggeringElement()['#action'];
-
-        switch ($action) {
-            case 'queue_run':
-                $this->runQueue();
-                break;
-            case 'queue_fill':
-                $this->fillQueue();
-                break;
-            case 'queue_empty':
-                $this->emptyQueue();
-                break;
-            case 'index_recreate':
-                $this->recreateIndex();
-                break;
-            case 'save_synonyms':
-                $this->saveSynonyms($formState);
-                break;
-            case 'save_decay':
-                $this->saveDecay($formState);
-                break;
-        }
     }
 
-    protected function runQueue()
+    public function runQueue()
     {
         $batch = [
             'title' => t('Adding documents to index'),
@@ -363,7 +359,7 @@ class OverviewForm extends FormBase
         batch_set($batch);
     }
 
-    protected function fillQueue()
+    public function fillQueue()
     {
         $this->indexer->queueAll(0, 0, 0);
 
@@ -372,7 +368,7 @@ class OverviewForm extends FormBase
         );
     }
 
-    protected function emptyQueue()
+    public function emptyQueue()
     {
         $this->queue->deleteQueue();
         $this->queue->createQueue();
@@ -382,7 +378,7 @@ class OverviewForm extends FormBase
         );
     }
 
-    protected function recreateIndex()
+    public function recreateIndex()
     {
         $this->indexer->purge();
 
@@ -391,7 +387,7 @@ class OverviewForm extends FormBase
         );
     }
 
-    protected function saveSynonyms(FormStateInterface $formState)
+    public function saveSynonyms(array $form, FormStateInterface $formState)
     {
         $synonyms = explode(PHP_EOL, $formState->getValue('synonyms'));
         $synonyms = array_map('trim', $synonyms);
@@ -407,7 +403,7 @@ class OverviewForm extends FormBase
         $this->messenger->addStatus($this->t('Successfully saved synonyms.'));
     }
 
-    protected function saveDecay(FormStateInterface $formState)
+    public function saveDecay(array $form, FormStateInterface $formState)
     {
         $values = $formState->getValue('decay');
         unset($values['actions']);
