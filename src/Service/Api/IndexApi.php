@@ -81,8 +81,9 @@ class IndexApi extends BaseApi
             throw new \RuntimeException('Could not fetch base mapping');
         }
 
-        $synonyms = \Drupal::state()->get('wmsearch.synonyms', ['temp, temp']);
-        $mapping['settings']['analysis']['filter']['synonym']['synonyms'] = $synonyms;
+        if ($synonyms = \Drupal::state()->get('wmsearch.synonyms')) {
+            $mapping['settings']['analysis']['filter']['synonym']['synonyms'] = $synonyms;
+        }
 
         $event = new MappingEvent($mapping);
         $this->eventDispatcher->dispatch(WmsearchEvents::MAPPING, $event);
