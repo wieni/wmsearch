@@ -9,25 +9,26 @@ class ReindexApi extends BaseApi
      * @param string $destIndex
      * @param array $types
      */
-    public function reindex($sourceIndex, $destIndex, array $types = ['page'])
+    public function reindex($sourceIndex, $destIndex, array $types = [])
     {
-        $result = $this->post('_reindex?wait_for_completion=false', [
+        $payload = [
             'source' => [
                 'index' => $sourceIndex,
-                'query' => [
-                    'bool' => [
-                        'should' => array_map(
-                            function ($type) { return ['type' => ['value' => $type]]; },
-                            $types
-                        ),
-                    ],
-                ],
             ],
             'dest' => [
                 'index' => $destIndex,
                 'version_type' => 'internal',
             ],
-        ]);
+        ];
+
+        if ($types) {
+            $payload['source']['query']['bool']['should'] = array_map(
+                function ($type) { return ['type' => ['value' => $type]]; },
+                $types
+            );
+        }
+
+        $result = $this->post('_reindex?wait_for_completion=false', $payload);
 
         return $result['task'];
     }
