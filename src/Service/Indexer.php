@@ -2,11 +2,10 @@
 
 namespace Drupal\wmsearch\Service;
 
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Entity\ContentEntityTypeInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\Query\QueryInterface;
-use Drupal\wmsearch\Entity\Document\DocumentInterface;
 use Drupal\wmsearch\Service\Api\IndexApi;
 
 class Indexer
@@ -24,28 +23,11 @@ class Indexer
         $this->indexApi = $indexApi;
     }
 
-    protected function getConditions($from, $limit, $offset)
+    protected function getEntityTypes(): array
     {
         return [
-            'node' => function (QueryInterface $qb) use ($from, $limit, $offset) {
-                $qb->condition('status', 1);
-                if ($from) {
-                    $qb->condition('nid', $from, '<=');
-                }
-                if ($limit) {
-                    $qb->range($offset, $limit);
-                }
-                $qb->sort('nid', 'DESC');
-            },
-            'taxonomy_term' => function (QueryInterface $qb) use ($from, $limit, $offset) {
-                if ($from) {
-                    $qb->condition('tid', $from, '<=');
-                }
-                if ($limit) {
-                    $qb->range($offset, $limit);
-                }
-                $qb->sort('tid', 'DESC');
-            },
+            'node',
+            'taxonomy_term',
         ];
     }
 
@@ -66,17 +48,36 @@ class Indexer
         );
     }
 
-    public function queueAll($from, $limit, $offset)
+    public function queueAll($from, $limit, $offset, $entityType = null)
     {
-        $conditions = $this->getConditions($from, $limit, $offset);
+        if ($entityType) {
+            $entityTypes = [$entityType];
+        } else {
+            $entityTypes = $this->getEntityTypes();
+        }
 
-        foreach ($conditions as $et => $condition) {
-            printf("Queuing entities of type %s\n", $et);
+        foreach ($entityTypes as $entityTypeId) {
+            try {
+                $definition = $this->entityTypeManager->getDefinition($entityTypeId);
+            } catch (PluginNotFoundException $e) {
+                continue;
+            }
 
-            $storage = $this->entityTypeManager->getStorage($et);
-            $qb = $storage->getQuery();
-            $condition($qb);
-            $ids = $qb->execute();
+            printf("Queuing entities of type %s\n", $definition->getLowercaseLabel());
+
+            $storage = $this->entityTypeManager->getStorage($entityTypeId);
+            $query = $storage->getQuery();
+            if ($definition->hasKey('published')) {
+                $query->condition($definition->getKey('published'), 1);
+            }
+            if ($from) {
+                $query->condition($definition->getKey('id'), $from, '<=');
+            }
+            if ($limit) {
+                $query->range($offset, $limit);
+            }
+            $query->sort($definition->getKey('id'), 'DESC');
+            $ids = $query->execute();
 
             $total = count($ids);
             $i = 0;
