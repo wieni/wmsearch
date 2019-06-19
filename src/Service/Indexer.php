@@ -3,8 +3,7 @@
 namespace Drupal\wmsearch\Service;
 
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
-use Drupal\Core\Entity\ContentEntityTypeInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Cache\MemoryCache\MemoryCacheInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\wmsearch\Service\Api\IndexApi;
 
@@ -12,14 +11,18 @@ class Indexer
 {
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
+    /** @var MemoryCacheInterface */
+    protected $memoryCache;
     /** @var IndexApi */
     protected $indexApi;
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,
+        MemoryCacheInterface $memoryCache,
         IndexApi $indexApi
     ) {
         $this->entityTypeManager = $entityTypeManager;
+        $this->memoryCache = $memoryCache;
         $this->indexApi = $indexApi;
     }
 
@@ -29,23 +32,6 @@ class Indexer
             'node',
             'taxonomy_term',
         ];
-    }
-
-    protected function getStorages()
-    {
-        $entityTypeIds = [];
-        foreach ($this->entityTypeManager->getDefinitions() as $definition) {
-            if ($definition instanceof ContentEntityTypeInterface) {
-                $entityTypeIds[] = $definition->id();
-            }
-        }
-
-        return array_map(
-            function ($entityTypeId) {
-                return $this->entityTypeManager->getStorage($entityTypeId);
-            },
-            $entityTypeIds
-        );
     }
 
     public function queueAll($from, $limit, $offset, $entityType = null)
@@ -82,7 +68,8 @@ class Indexer
             $total = count($ids);
             $i = 0;
             foreach (array_chunk($ids, 50) as $chunk) {
-                $this->resetCaches();
+                $this->memoryCache->deleteAll();
+
                 foreach ($chunk as $id) {
                     $entity = $storage->load($id);
                     printf(
@@ -108,21 +95,5 @@ class Indexer
         } catch (\Exception $e) {
         }
         $this->indexApi->createIndex();
-    }
-
-    private function resetCaches()
-    {
-        static $storages;
-
-        if (!isset($storages)) {
-            $storages = $this->getStorages();
-        }
-
-        array_map([$this, 'resetCache'], $storages);
-    }
-
-    private function resetCache(EntityStorageInterface $storage)
-    {
-        $storage->resetCache();
     }
 }
