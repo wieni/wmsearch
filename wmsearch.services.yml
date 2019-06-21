@@ -55,6 +55,7 @@ services:
         class: Drupal\wmsearch\Service\Indexer
         arguments:
             - '@entity_type.manager'
+            - '@entity.memory_cache'
             - '@wmsearch.api.index'
 
     wmsearch.html_stripper:
