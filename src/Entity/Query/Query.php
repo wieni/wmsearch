@@ -168,6 +168,15 @@ class Query implements QueryInterface, HighlightInterface
         ]);
     }
 
+    public function addShould(array $value)
+    {
+        if ($this->has('query', 'function_score')) {
+            return $this->add('query', 'function_score', 'query', 'bool', 'should', $value);
+        }
+
+        return $this->add('query', 'bool', 'should', $value);
+    }
+
     /**
      * Add a filter.
      *
