@@ -76,6 +76,11 @@ class Query implements QueryInterface, HighlightInterface
         return $this->set('_source', $source);
     }
 
+    public function setSort(array $sort)
+    {
+        return $this->set('sort', $sort);
+    }
+
     public function addCompletion($field, $query, $fuzzy = 2)
     {
         return $this
