@@ -2,14 +2,13 @@
 
 namespace Drupal\wmsearch\Plugin\QueueWorker;
 
-use Drupal\wmsearch\Service\Api;
+use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\wmsearch\Entity\Document\DocumentInterface;
-
-use Drupal\node\NodeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\TypedData\TranslatableInterface;
+use Drupal\wmsearch\Service\Api\IndexApi;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -21,23 +20,22 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInterface
 {
-    /** @var Api */
-    protected $api;
-
+    /** @var IndexApi */
+    protected $indexApi;
     /** @var EntityTypeManagerInterface */
-    protected $etm;
+    protected $entityTypeManager;
 
     public function __construct(
         array $configuration,
         $pluginId,
         $pluginDef,
-        Api $api,
-        EntityTypeManagerInterface $etm
+        IndexApi $indexApi,
+        EntityTypeManagerInterface $entityTypeManager
     ) {
         parent::__construct($configuration, $pluginId, $pluginDef);
 
-        $this->api = $api;
-        $this->etm = $etm;
+        $this->indexApi = $indexApi;
+        $this->entityTypeManager = $entityTypeManager;
     }
 
     public static function create(
@@ -50,19 +48,19 @@ class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInter
             $configuration,
             $pluginId,
             $pluginDef,
-            $container->get('wmsearch.api'),
+            $container->get('wmsearch.api.index'),
             $container->get('entity_type.manager')
         );
     }
 
     public function processItem($data)
     {
-        $entity = $this->etm->getStorage($data['type'])->load($data['id']);
+        $entity = $this->entityTypeManager->getStorage($data['type'])->load($data['id']);
 
         if (
-            $entity
-            && $entity instanceof TranslatableInterface
+            $entity instanceof TranslatableInterface
             && $entity->language()->getId() !== $data['language']
+            && $entity->hasTranslation($data['language'])
         ) {
             $entity = $entity->getTranslation($data['language']);
         }
@@ -70,16 +68,16 @@ class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInter
         if (
             !$entity
             || !($entity instanceof DocumentInterface)
-            || ($entity instanceof NodeInterface && !$entity->isPublished())
+            || ($entity instanceof EntityPublishedInterface && !$entity->isPublished())
         ) {
             if ($elasticId = $data['types']['page'] ?? '') {
-                $this->api->delDoc($elasticId);
+                $this->indexApi->delDoc('page', $elasticId);
             }
 
             return;
         }
 
-        $this->api->addDoc($entity);
+        $this->indexApi->addDoc($entity);
     }
 }
 

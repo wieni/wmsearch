@@ -9,29 +9,56 @@ parameters:
     wmsearch.json.query_builder.class: 'Drupal\wmsearch\Service\QueryBuilder'
 
 services:
-    wmsearch.api:
-        class: 'Drupal\wmsearch\Service\Api'
+    wmsearch.api.base:
+        class: Drupal\wmsearch\Service\Api\BaseApi
+        arguments:
+            - '%wmsearch.elastic.endpoint%'
+
+    wmsearch.api.index:
+        class: Drupal\wmsearch\Service\Api\IndexApi
+        parent: wmsearch.api.base
         arguments:
             - '@app.root'
-            - '@event_dispatcher'
-            - '@module_handler'
-            - '%wmsearch.elastic.endpoint%'
             - '%wmsearch.elastic.index%'
+            - '@module_handler'
+            - '@event_dispatcher'
+            - '@file_system'
+            - '@wmsearch.api.alias'
+            - '@wmsearch.api.reindex'
+            - '@wmsearch.api.task'
+
+    wmsearch.api.alias:
+        class: Drupal\wmsearch\Service\Api\AliasApi
+        parent: wmsearch.api.base
+
+    wmsearch.api.reindex:
+        class: Drupal\wmsearch\Service\Api\ReindexApi
+        parent: wmsearch.api.base
+
+    wmsearch.api.search:
+        class: Drupal\wmsearch\Service\Api\SearchApi
+        parent: wmsearch.api.base
+        arguments:
+            - '%wmsearch.elastic.index%'
+
+    wmsearch.api.stats:
+        class: Drupal\wmsearch\Service\Api\StatsApi
+        parent: wmsearch.api.base
+        arguments:
+            - '@wmsearch.api.alias'
+
+    wmsearch.api.task:
+        class: Drupal\wmsearch\Service\Api\TaskApi
+        parent: wmsearch.api.base
 
     wmsearch.indexer:
-        class: 'Drupal\wmsearch\Service\Indexer'
+        class: Drupal\wmsearch\Service\Indexer
         arguments:
             - '@entity_type.manager'
-            - '@wmsearch.api'
-
-    wmsearch.base_api:
-        class: 'Drupal\wmsearch\Service\BaseApi'
-        arguments:
-            - '%wmsearch.elastic.endpoint%'
-            - '%wmsearch.elastic.index%'
+            - '@wmsearch.api.index'
 
     wmsearch.html_stripper:
-        class: 'Drupal\wmsearch\Service\HtmlStripper'
+        class: Drupal\wmsearch\Service\HtmlStripper
 
     wmsearch.json.query_builder:
         class: '%wmsearch.json.query_builder.class%'
@@ -40,14 +67,15 @@ services:
         class: '%wmsearch.json.formatter.class%'
 
     wmsearch.routing.disable_simple_search:
-        class:  'Drupal\wmsearch\Routing\DisableSimpleSearchSubscriber'
-        arguments: ['%wmsearch.simple_search%']
+        class: Drupal\wmsearch\Routing\DisableSimpleSearchSubscriber
+        arguments:
+            - '%wmsearch.simple_search%'
         tags: [{ name: event_subscriber }]
 
     wmsearch.middleware.early_json:
         class: Drupal\wmsearch\Middleware\EarlyJson
         arguments:
-            - '@wmsearch.base_api'
+            - '@wmsearch.api.search'
             - '@wmsearch.json.formatter'
             - '@wmsearch.json.query_builder'
             - '%wmsearch.json.path%'

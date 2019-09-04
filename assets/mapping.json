@@ -31,6 +31,15 @@
                         "lowercase",
                         "ngram"
                     ]
+                },
+                "standard_synonym" : {
+                    "type": "custom",
+                    "tokenizer" : "standard",
+                    "filter" : [
+                        "asciifolding",
+                        "lowercase",
+                        "synonym"
+                    ]
                 }
             },
             "filter": {
@@ -38,6 +47,10 @@
                     "type": "edge_ngram",
                     "min_gram": 2,
                     "max_gram": 20
+                },
+                "synonym" : {
+                    "type" : "synonym",
+                    "synonyms": ["temp, temp"]
                 }
             }
         }
@@ -70,7 +83,7 @@
                 "suggest": {
                     "type": "completion",
                     "analyzer": "ascii",
-                    "search_analyzer": "standard",
+                    "search_analyzer": "standard_synonym",
                     "contexts": [
                         {
                             "name": "language",
@@ -91,25 +104,25 @@
                 },
                 "title": {
                     "analyzer": "ngram",
-                    "search_analyzer": "ascii",
+                    "search_analyzer": "standard_synonym",
                     "type": "text",
                     "boost": 2
                 },
                 "terms": {
                     "analyzer": "ngram",
-                    "search_analyzer": "ascii",
+                    "search_analyzer": "standard_synonym",
                     "type": "text",
                     "boost": 1.5
                 },
                 "intro": {
                     "analyzer": "ngram",
-                    "search_analyzer": "ascii",
+                    "search_analyzer": "standard_synonym",
                     "type": "text",
                     "boost": 1.2
                 },
                 "body": {
                     "analyzer": "html",
-                    "search_analyzer": "ascii",
+                    "search_analyzer": "standard_synonym",
                     "type": "text"
                 },
                 "created": {

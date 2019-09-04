@@ -4,6 +4,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\wmsearch\Exception\ApiException;
 use Drupal\wmsearch\Entity\Document\DocumentInterface;
 use Drupal\Core\TypedData\TranslatableInterface;
+use Drush\Drush;
 
 /**
  * Queue entities to be added/removed to/from the index.
@@ -102,12 +103,39 @@ function wmsearch_id($type, $language, $id)
 function wmsearch_rebuild()
 {
     try {
-        \Drupal::service('wmsearch.api')->createIndex();
+        \Drupal::service('wmsearch.api.index')->createIndex(false);
     } catch (ApiException $e) {
         if ($e->isIndexExists()) {
             return;
         }
         \Drupal::logger('wmsearch')->error($e->getMessage());
+    }
+}
+
+function wmsearch_cron()
+{
+    $state = Drupal::state();
+    $api = Drupal::getContainer()->get('wmsearch.api.index');
+    $synonyms = $state->get('wmsearch.synonyms');
+
+    if (!$state->get('wmsearch.synonymsChanged', false)) {
+        return;
+    }
+
+    $api->createIndex(true);
+    $state->delete('wmsearch.synonymsChanged');
+
+    if ($synonyms) {
+        $message = 'Successfully added synonyms to Elastic mapping.';
+    } else {
+        $message = 'Successfully removed synonyms from Elastic mapping.';
+    }
+
+    if (Drush::hasContainer()) {
+        Drush::logger()->info($message);
+    } else {
+        Drupal::logger('wmsearch')->info($message);
+        Drupal::messenger()->addMessage($message);
     }
 }
 

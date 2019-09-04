@@ -5,6 +5,8 @@ namespace Drupal\wmsearch\Entity\Query;
 class Query implements QueryInterface, HighlightInterface
 {
     protected $query;
+    protected $docType;
+    protected $isCount;
 
     public function __construct(array $query = [])
     {
@@ -211,6 +213,16 @@ class Query implements QueryInterface, HighlightInterface
     public function getHighlightPostTag()
     {
         return $this->query['highlight']['post_tags'][0] ?? '<em>';
+    }
+
+    public function isCount($isCount = null)
+    {
+        if (is_null($isCount)) {
+            return $this->isCount;
+        }
+
+        $this->isCount = (bool) $isCount;
+        return $this;
     }
 
     protected function get()

@@ -2,9 +2,8 @@
 
 namespace Drupal\wmsearch\Form;
 
-use Drupal\wmsearch\Service\Api;
 use Drupal\wmsearch\Exception\ApiException;
-use Drupal\wmsearch\Entity\Query\Query;
+use Drupal\wmsearch\Service\Api\SearchApi;
 use Drupal\wmsearch\Service\QueryBuilderInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -14,26 +13,23 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class SimpleSearchForm extends FormBase
 {
-    /** @var Api */
-    protected $api;
-
+    /** @var SearchApi */
+    protected $searchApi;
     /** @var RequestStack */
-    protected $req;
-
+    protected $request;
     /** @var TranslationManager */
     protected $trans;
-
     /** @var QueryBuilderInterface */
     protected $builder;
 
     public function __construct(
-        Api $api,
-        RequestStack $req,
+        SearchApi $searchApi,
+        RequestStack $request,
         QueryBuilderInterface $builder,
         TranslationManager $trans
     ) {
-        $this->api = $api;
-        $this->req = $req;
+        $this->searchApi = $searchApi;
+        $this->request = $request;
         $this->builder = $builder;
         $this->trans = $trans;
     }
@@ -41,7 +37,7 @@ class SimpleSearchForm extends FormBase
     public static function create(ContainerInterface $container)
     {
         return new static(
-            $container->get('wmsearch.api'),
+            $container->get('wmsearch.api.search'),
             $container->get('request_stack'),
             $container->get('wmsearch.json.query_builder'),
             $container->get('string_translation')
@@ -57,7 +53,7 @@ class SimpleSearchForm extends FormBase
         array $form,
         FormStateInterface $formState
     ) {
-        $q = $this->req->getCurrentRequest()->query;
+        $q = $this->request->getCurrentRequest()->query;
 
         $query = $q->get('query', '');
         $page = $q->get('page', 0);
@@ -104,7 +100,7 @@ class SimpleSearchForm extends FormBase
     {
         $perPage = 10;
         $q = $this->builder->build($query, $page * $perPage, $perPage);
-        $r = $this->api->highlightSearch($q);
+        $r = $this->searchApi->highlightSearch($q);
         $form['results'] = ['#type' => 'container'];
 
         $total = $r->getTotal();

@@ -2,28 +2,25 @@
 
 namespace Drupal\wmsearch\Service;
 
-use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\ContentEntityTypeInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
-use Drupal\Core\TypedData\TranslatableInterface;
-use Drupal\node\Entity\Node;
-use Drupal\wmsearch\Entity\Document\DocumentInterface;
-use GuzzleHttp\Exception\GuzzleException;
+use Drupal\wmsearch\Service\Api\IndexApi;
 
 class Indexer
 {
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
-    /** @var Api */
-    protected $index;
+    /** @var IndexApi */
+    protected $indexApi;
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,
-        Api $index
+        IndexApi $indexApi
     ) {
         $this->entityTypeManager = $entityTypeManager;
-        $this->index = $index;
+        $this->indexApi = $indexApi;
     }
 
     protected function getConditions($from, $limit, $offset)
@@ -39,15 +36,33 @@ class Indexer
                 }
                 $qb->sort('nid', 'DESC');
             },
+            'taxonomy_term' => function (QueryInterface $qb) use ($from, $limit, $offset) {
+                if ($from) {
+                    $qb->condition('tid', $from, '<=');
+                }
+                if ($limit) {
+                    $qb->range($offset, $limit);
+                }
+                $qb->sort('tid', 'DESC');
+            },
         ];
     }
 
     protected function getStorages()
     {
-        return [
-            $this->entityTypeManager->getStorage('node'),
-            $this->entityTypeManager->getStorage('taxonomy_term'),
-        ];
+        $entityTypeIds = [];
+        foreach ($this->entityTypeManager->getDefinitions() as $definition) {
+            if ($definition instanceof ContentEntityTypeInterface) {
+                $entityTypeIds[] = $definition->id();
+            }
+        }
+
+        return array_map(
+            function ($entityTypeId) {
+                return $this->entityTypeManager->getStorage($entityTypeId);
+            },
+            $entityTypeIds
+        );
     }
 
     public function queueAll($from, $limit, $offset)
@@ -62,21 +77,19 @@ class Indexer
             $condition($qb);
             $ids = $qb->execute();
 
-            $total = max($ids);
-
+            $total = count($ids);
+            $i = 0;
             foreach (array_chunk($ids, 50) as $chunk) {
                 $this->resetCaches();
                 foreach ($chunk as $id) {
                     $entity = $storage->load($id);
                     printf(
-                        "\033[0G\033[K%03d/%03d",
+                        "\033[0G\033[K%03d/%03d (%s) - %s",
+                        ++$i,
+                        $total,
                         $id,
-                        $total
+                        $entity->label()
                     );
-
-                    if (!$entity instanceof DocumentInterface) {
-                        continue;
-                    }
 
                     wmsearch_queue($entity, true);
                 }
@@ -89,10 +102,10 @@ class Indexer
     public function purge()
     {
         try {
-            $this->index->deleteIndex();
+            $this->indexApi->deleteIndex();
         } catch (\Exception $e) {
         }
-        $this->index->createIndex();
+        $this->indexApi->createIndex();
     }
 
     private function resetCaches()

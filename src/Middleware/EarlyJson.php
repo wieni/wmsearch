@@ -2,8 +2,8 @@
 
 namespace Drupal\wmsearch\Middleware;
 
-use Drupal\wmsearch\Service\BaseApi;
 use Drupal\wmsearch\Exception\ApiException;
+use Drupal\wmsearch\Service\Api\SearchApi;
 use Drupal\wmsearch\Service\ResultFormatterInterface;
 use Drupal\wmsearch\Service\QueryBuilderInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,13 +14,10 @@ class EarlyJson implements HttpKernelInterface
 {
     /** @var HttpKernelInterface */
     protected $next;
-
-    /** @var BaseApi */
-    protected $api;
-
+    /** @var SearchApi */
+    protected $searchApi;
     /** @var ResultFormatterInterface */
     protected $formatter;
-
     /** @var QueryBuilderInterface */
     protected $builder;
 
@@ -28,13 +25,13 @@ class EarlyJson implements HttpKernelInterface
 
     public function __construct(
         HttpKernelInterface $next,
-        BaseApi $api,
+        SearchApi $searchApi,
         ResultFormatterInterface $formatter,
         QueryBuilderInterface $builder,
         $path
     ) {
         $this->next = $next;
-        $this->api = $api;
+        $this->searchApi = $searchApi;
         $this->builder = $builder;
         $this->formatter = $formatter;
         $this->path = $path;
@@ -64,7 +61,7 @@ class EarlyJson implements HttpKernelInterface
             $post = $q->getHighlightPostTag();
             return new JsonResponse(
                 $this->formatter->format(
-                    $this->api->highlightSearch($q),
+                    $this->searchApi->highlightSearch($q),
                     $pre,
                     $post
                 )
