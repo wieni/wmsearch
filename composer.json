@@ -20,8 +20,7 @@
     "require": {
         "php": ">=7.0.0",
         "drupal/core": "^8",
-        "guzzlehttp/guzzle": "^6.1",
-        "wieni/wmmodel": "^0.3"
+        "guzzlehttp/guzzle": "^6.1"
     },
     "extra": {
         "drush": {
