@@ -63,13 +63,13 @@
                 "type": "keyword"
             },
             "type": {
-                "type": "text"
+                "type": "keyword"
             },
             "bundle": {
-                "type": "text"
+                "type": "keyword"
             },
             "language": {
-                "type": "text"
+                "type": "keyword"
             },
             "suggest": {
                 "type": "completion",
@@ -106,7 +106,7 @@
                 "boost": 1.5
             },
             "intro": {
-                "analyzer": "ngram",
+                "analyzer": "ascii",
                 "search_analyzer": "standard_synonym",
                 "type": "text",
                 "boost": 1.2
