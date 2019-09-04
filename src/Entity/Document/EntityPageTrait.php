@@ -4,8 +4,9 @@ namespace Drupal\wmsearch\Entity\Document;
 
 /**
  * Convenience trait for implementors of Drupal\Core\Entity\EntityInterface.
+ * @mixin \Drupal\Core\Entity\EntityInterface
  */
-trait EntityPageTrait /* implements Drupal\Core\Entity\EntityInterface */
+trait EntityPageTrait
 {
     /**
      * @return string|int|null

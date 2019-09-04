@@ -174,17 +174,17 @@ class IndexApi extends BaseApi
         foreach ($docTypes as $type) {
             try {
                 $arr = $doc->toElasticArray($type);
+                $arr['docType'] = $type;
                 $this->put(
                     sprintf(
-                        '%s/%s/%s',
+                        '%s/_doc/%s',
                         $this->index,
-                        $type,
                         $doc->getElasticId($type)
                     ),
                     $arr
                 );
             } catch (NotIndexableException $e) {
-                $this->delDoc($type, $doc->getElasticId($type));
+                $this->delDoc($doc->getElasticId($type));
             }
         }
     }
@@ -215,7 +215,7 @@ class IndexApi extends BaseApi
                         'arr' => $doc->toElasticArray($type),
                     ];
                 } catch (NotIndexableException $e) {
-                    $this->delDoc($type, $doc->getElasticId($type));
+                    $this->delDoc($doc->getElasticId($type));
                 }
             }
         }
@@ -233,8 +233,8 @@ class IndexApi extends BaseApi
                 return json_encode(
                         [
                             'index' => [
-                                '_type' => $doc['type'],
                                 '_id' => $doc['id'],
+                                'docType' => $doc['type'],
                             ],
                         ]
                     ) .
@@ -251,15 +251,15 @@ class IndexApi extends BaseApi
         );
     }
 
-    public function getDoc($docType, $id)
+    public function getDoc($id)
     {
-        return $this->get(sprintf('%s/%s/%s', $this->index, $docType, $id));
+        return $this->get(sprintf('%s/_doc/%s', $this->index, $id));
     }
 
-    public function delDoc($docType, $id)
+    public function delDoc($id)
     {
         try {
-            return $this->delete(sprintf('%s/%s/%s', $this->index, $docType, $id));
+            return $this->delete(sprintf('%s/_doc/%s', $this->index, $id));
         } catch (ApiException $e) {
             if (!$e->isNotFound()) {
                 throw $e;

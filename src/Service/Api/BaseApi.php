@@ -12,14 +12,18 @@ class BaseApi
     protected $client;
     /** @var string */
     protected $endpoint;
-    /** @var float */
-    protected $timeout;
 
     public function __construct($endpoint, $timeout = 10.0)
     {
         $this->endpoint = $endpoint;
-        $this->timeout = $timeout;
-        $this->client = new Client();
+        $this->client = new Client([
+            'verify' => false,
+            'timeout' => $timeout,
+            'headers' => [
+                'content-type' => 'application/json',
+                'Accept' => 'application/json'
+            ],
+        ]);
     }
 
     protected function get($endpoint, array $options = [])
@@ -48,7 +52,7 @@ class BaseApi
             $r = $this->client->request(
                 $method,
                 sprintf('%s/%s', $this->endpoint, $endpoint),
-                $options + ['timeout' => $this->timeout]
+                $options
             );
         } catch (ClientException $e) {
             throw new ApiException(

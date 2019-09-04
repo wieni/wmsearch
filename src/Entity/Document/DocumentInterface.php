@@ -5,16 +5,16 @@ namespace Drupal\wmsearch\Entity\Document;
 interface DocumentInterface
 {
     /**
-     * Return the document type.
+     * Return the document types.
      *
      * @return string[]
      */
     public static function getElasticTypes();
 
-    /*
+    /**
      * Returns the document/entity id.
      *
-     * @param $type The document type.
+     * @param string $type The document type.
      * @return string|int
      */
     public function getElasticId($type);

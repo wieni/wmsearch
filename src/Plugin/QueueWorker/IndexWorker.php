@@ -71,7 +71,7 @@ class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInter
             || ($entity instanceof EntityPublishedInterface && !$entity->isPublished())
         ) {
             if ($elasticId = $data['types']['page'] ?? '') {
-                $this->indexApi->delDoc('page', $elasticId);
+                $this->indexApi->delDoc($elasticId);
             }
 
             return;

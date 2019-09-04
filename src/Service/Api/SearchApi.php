@@ -88,15 +88,6 @@ class SearchApi extends BaseApi
             $query->isCount() ? '_count' : '_search'
         );
 
-        if ($docType = $query->getDocumentType()) {
-            $ep = sprintf(
-                '%s/%s/%s',
-                $this->index,
-                $docType,
-                $query->isCount() ? '_count' : '_search'
-            );
-        }
-
         return $this->post(
             $ep,
             $query->toArray()

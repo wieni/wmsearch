@@ -56,7 +56,7 @@ class SearchResult
 
     public function getTotal()
     {
-        return $this->get('hits', 'total');
+        return $this->get('hits', 'total', 'value');
     }
 
     public function getDuration()
