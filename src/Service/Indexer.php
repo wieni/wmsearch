@@ -104,6 +104,7 @@ class Indexer
         try {
             $this->indexApi->deleteIndex();
         } catch (\Exception $e) {
+            dump($e->getMessage());
         }
         $this->indexApi->createIndex();
     }

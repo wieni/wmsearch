@@ -133,7 +133,12 @@ class IndexApi extends BaseApi
 
     public function deleteIndex()
     {
-        $this->delete($this->index);
+        $info = $this->get($this->index);
+        $index = array_keys($info)[0] ?? '';
+        if (!$index) {
+            throw new \RuntimeException('Index not found');
+        }
+        $this->delete($index);
     }
 
     /**
