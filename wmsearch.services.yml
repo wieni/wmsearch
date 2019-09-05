@@ -26,6 +26,7 @@ services:
             - '@wmsearch.api.alias'
             - '@wmsearch.api.reindex'
             - '@wmsearch.api.task'
+            - '@wmsearch.document_collection.manager'
 
     wmsearch.api.alias:
         class: Drupal\wmsearch\Service\Api\AliasApi
@@ -56,6 +57,16 @@ services:
         arguments:
             - '@entity_type.manager'
             - '@wmsearch.api.index'
+
+    wmsearch.document_collection.manager:
+        class: Drupal\wmsearch\Service\DocumentCollectionManager
+        arguments:
+            - '@class_resolver'
+            - '@keyvalue'
+
+    wmsearch.document_collection.entity:
+        class: Drupal\wmsearch\Entity\Document\EntityDocumentCollection
+        shared: false
 
     wmsearch.html_stripper:
         class: Drupal\wmsearch\Service\HtmlStripper

@@ -3,9 +3,10 @@
 namespace Drupal\wmsearch\Service\Api;
 
 use Drupal\Core\File\FileSystem;
-use Drupal\wmsearch\Entity\Document\DocumentInterface;
+use Drupal\wmsearch\Entity\Document\ElasticEntityInterface;
 use Drupal\wmsearch\Exception\ApiException;
 use Drupal\wmsearch\Exception\NotIndexableException;
+use Drupal\wmsearch\Service\DocumentCollectionManager;
 use Drupal\wmsearch\WmsearchEvents;
 use Drupal\wmsearch\Event\MappingEvent;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -31,6 +32,8 @@ class IndexApi extends BaseApi
     protected $reindexApi;
     /** @var TaskApi */
     protected $taskApi;
+    /** @var DocumentCollectionManager */
+    protected $documentCollectionManager;
 
     public function __construct(
         $endpoint,
@@ -41,7 +44,8 @@ class IndexApi extends BaseApi
         FileSystem $fileSystem,
         AliasApi $aliasApi,
         ReindexApi $reindexApi,
-        TaskApi $taskApi
+        TaskApi $taskApi,
+        DocumentCollectionManager $documentCollectionManager
     ) {
         parent::__construct($endpoint);
 
@@ -58,6 +62,7 @@ class IndexApi extends BaseApi
         $this->aliasApi = $aliasApi;
         $this->reindexApi = $reindexApi;
         $this->taskApi = $taskApi;
+        $this->documentCollectionManager = $documentCollectionManager;
     }
 
     protected function getBaseMapping()
@@ -172,40 +177,67 @@ class IndexApi extends BaseApi
         );
     }
 
-    public function addDoc(DocumentInterface $doc, array $docTypes = [])
+    public function addDoc(ElasticEntityInterface $doc, array $docTypes = [])
     {
         $docTypes = $docTypes ?: $doc->getElasticTypes();
 
         foreach ($docTypes as $type) {
-            try {
-                $arr = $doc->toElasticArray($type);
-                $arr['docType'] = $type;
-                $this->put(
-                    sprintf(
-                        '%s/_doc/%s',
-                        $this->index,
-                        $doc->getElasticId($type)
-                    ),
-                    $arr
-                );
-            } catch (NotIndexableException $e) {
-                $this->delDoc($doc->getElasticId($type));
+            $collection = $this->documentCollectionManager->getDocumentCollection(
+                $doc,
+                $type
+            );
+
+            // Fetch the already-indexed and to-be indexed elasticIds.
+            // If an already-indexed id get's passed to toElasticArray($id) but
+            // it shouldn't be indexed anymore it will trigger a
+            // NotIndexableException.
+            $elasticIds = $this->documentCollectionManager->getIndexedIds(
+                $collection
+            );
+
+            // Keep track of all indexed id's so we can update the
+            // already-indexed set.
+            $indexedIds = [];
+            foreach ($elasticIds as $id) {
+                try {
+                    $arr = $collection->toElasticArray($id);
+                    $arr['docType'] = $type;
+                    $this->put(
+                        sprintf(
+                            '%s/_doc/%s',
+                            $this->index,
+                            $id
+                        ),
+                        $arr
+                    );
+                    $indexedIds[] = $id;
+                } catch (NotIndexableException $e) {
+                    $this->delDoc($id);
+                    continue;
+                }
             }
+
+            // Update the already-indexed set so when an id needs to be removed
+            // we can easily do so.
+            $this->documentCollectionManager->setIndexedIds(
+                $collection,
+                $indexedIds
+            );
         }
     }
 
     /**
-     * @param DocumentInterface[] $docs List of documents to update
+     * @param ElasticEntityInterface[] $docs List of documents to update
      *                                  using the _bulk api.
      */
     public function addDocs(array $docs)
     {
         $_docs = [];
         foreach ($docs as $i => $doc) {
-            if (!($doc instanceof DocumentInterface)) {
+            if (!($doc instanceof ElasticEntityInterface)) {
                 throw new \InvalidArgumentException(
                     sprintf(
-                        'Document at index `%s` of type `%s` does not implement DocumentInterface',
+                        'Document at index `%s` of type `%s` does not implement DocumentEntityInterface',
                         $i,
                         get_class($doc)
                     )
@@ -213,15 +245,41 @@ class IndexApi extends BaseApi
             }
 
             foreach ($doc->getElasticTypes() as $type) {
-                try {
-                    $_docs[] = [
-                        'type' => $type,
-                        'id' => $doc->getElasticId($type),
-                        'arr' => $doc->toElasticArray($type),
-                    ];
-                } catch (NotIndexableException $e) {
-                    $this->delDoc($doc->getElasticId($type));
+                $collection = $this->documentCollectionManager->getDocumentCollection(
+                    $doc,
+                    $type
+                );
+
+                // Fetch the already-indexed and to-be indexed elasticIds.
+                // If an already-indexed id get's passed to toElasticArray($id)
+                // but it shouldn't be indexed anymore it will trigger a
+                // NotIndexableException.
+                $elasticIds = $this->documentCollectionManager->getIndexedIds(
+                    $collection
+                );
+
+                // Keep track of all indexed id's so we can update the
+                // already-indexed set.
+                $indexedIds = [];
+                foreach ($elasticIds as $id) {
+                    try {
+                        $_docs[] = [
+                            'type' => $type,
+                            'id' => $id,
+                            'arr' => $collection->toElasticArray($id),
+                        ];
+                        $indexedIds[] = $id;
+                    } catch (NotIndexableException $e) {
+                        $this->delDoc($id);
+                    }
                 }
+
+                // Update the already-indexed set so when an id needs to be
+                // removed we can easily do so.
+                $this->documentCollectionManager->setIndexedIds(
+                    $collection,
+                    $indexedIds
+                );
             }
         }
 
@@ -239,12 +297,11 @@ class IndexApi extends BaseApi
                         [
                             'index' => [
                                 '_id' => $doc['id'],
-                                'docType' => $doc['type'],
                             ],
                         ]
                     ) .
                     "\n" .
-                    json_encode($doc['arr']) .
+                    json_encode($doc['arr'] + ['docType' => $doc['type']]) .
                     "\n";
             }
         );

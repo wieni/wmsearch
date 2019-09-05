@@ -1,8 +1,8 @@
 <?php
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\wmsearch\Entity\Document\ElasticEntityInterface;
 use Drupal\wmsearch\Exception\ApiException;
-use Drupal\wmsearch\Entity\Document\DocumentInterface;
 use Drupal\Core\TypedData\TranslatableInterface;
 use Drush\Drush;
 
@@ -11,9 +11,11 @@ use Drush\Drush;
  */
 function wmsearch_queue(EntityInterface $e, $allTranslations = false)
 {
-    if (!$e instanceof DocumentInterface) {
+    if (!$e instanceof ElasticEntityInterface) {
         return;
     }
+    $collectionManager = \Drupal::getContainer()
+        ->get('wmsearch.document_collection.manager');
 
     $languages = [$e->language()];
     if (
@@ -27,13 +29,21 @@ function wmsearch_queue(EntityInterface $e, $allTranslations = false)
 
     foreach ($languages as $language) {
         $translation = $e->getTranslation($language->getId());
-        if (!$translation) {
+        if (!$translation instanceof ElasticEntityInterface) {
             continue;
         }
 
         $types = [];
         foreach ($translation->getElasticTypes() as $docType) {
-            $types[$docType] = $translation->getElasticId($docType);
+            $documentCollection = $collectionManager
+                ->getDocumentCollection($translation, $docType);
+
+            $types[$docType] = [
+                'collection' => $documentCollection->getCollectionName(),
+                'elasticIds' => $collectionManager->getIndexedIds(
+                    $documentCollection
+                )
+            ];
         }
 
         \Drupal::service('queue')
