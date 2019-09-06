@@ -2,85 +2,74 @@
 
 namespace Drupal\wmsearch\Service;
 
-use Drupal\Core\Entity\ContentEntityTypeInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
+use Drupal\Core\Cache\MemoryCache\MemoryCacheInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\wmsearch\Service\Api\IndexApi;
 
 class Indexer
 {
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
+    /** @var MemoryCacheInterface */
+    protected $memoryCache;
     /** @var IndexApi */
     protected $indexApi;
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,
+        MemoryCacheInterface $memoryCache,
         IndexApi $indexApi
     ) {
         $this->entityTypeManager = $entityTypeManager;
+        $this->memoryCache = $memoryCache;
         $this->indexApi = $indexApi;
     }
 
-    protected function getConditions($from, $limit, $offset)
+    protected function getEntityTypes(): array
     {
         return [
-            'node' => function (QueryInterface $qb) use ($from, $limit, $offset) {
-                $qb->condition('status', 1);
-                if ($from) {
-                    $qb->condition('nid', $from, '<=');
-                }
-                if ($limit) {
-                    $qb->range($offset, $limit);
-                }
-                $qb->sort('nid', 'DESC');
-            },
-            'taxonomy_term' => function (QueryInterface $qb) use ($from, $limit, $offset) {
-                if ($from) {
-                    $qb->condition('tid', $from, '<=');
-                }
-                if ($limit) {
-                    $qb->range($offset, $limit);
-                }
-                $qb->sort('tid', 'DESC');
-            },
+            'node',
+            'taxonomy_term',
         ];
     }
 
-    protected function getStorages()
+    public function queueAll($from, $limit, $offset, $entityType = null)
     {
-        $entityTypeIds = [];
-        foreach ($this->entityTypeManager->getDefinitions() as $definition) {
-            if ($definition instanceof ContentEntityTypeInterface) {
-                $entityTypeIds[] = $definition->id();
-            }
+        if ($entityType) {
+            $entityTypes = [$entityType];
+        } else {
+            $entityTypes = $this->getEntityTypes();
         }
 
-        return array_map(
-            function ($entityTypeId) {
-                return $this->entityTypeManager->getStorage($entityTypeId);
-            },
-            $entityTypeIds
-        );
-    }
+        foreach ($entityTypes as $entityTypeId) {
+            try {
+                $definition = $this->entityTypeManager->getDefinition($entityTypeId);
+            } catch (PluginNotFoundException $e) {
+                continue;
+            }
 
-    public function queueAll($from, $limit, $offset)
-    {
-        $conditions = $this->getConditions($from, $limit, $offset);
+            printf("Queuing entities of type %s\n", $definition->getLowercaseLabel());
 
-        foreach ($conditions as $et => $condition) {
-            printf("Queuing entities of type %s\n", $et);
-
-            $storage = $this->entityTypeManager->getStorage($et);
-            $qb = $storage->getQuery();
-            $condition($qb);
-            $ids = $qb->execute();
+            $storage = $this->entityTypeManager->getStorage($entityTypeId);
+            $query = $storage->getQuery();
+            if ($definition->hasKey('published')) {
+                $query->condition($definition->getKey('published'), 1);
+            }
+            if ($from) {
+                $query->condition($definition->getKey('id'), $from, '<=');
+            }
+            if ($limit) {
+                $query->range($offset, $limit);
+            }
+            $query->sort($definition->getKey('id'), 'DESC');
+            $ids = $query->execute();
 
             $total = count($ids);
             $i = 0;
             foreach (array_chunk($ids, 50) as $chunk) {
-                $this->resetCaches();
+                $this->memoryCache->deleteAll();
+
                 foreach ($chunk as $id) {
                     $entity = $storage->load($id);
                     printf(
@@ -107,21 +96,5 @@ class Indexer
             dump($e->getMessage());
         }
         $this->indexApi->createIndex();
-    }
-
-    private function resetCaches()
-    {
-        static $storages;
-
-        if (!isset($storages)) {
-            $storages = $this->getStorages();
-        }
-
-        array_map([$this, 'resetCache'], $storages);
-    }
-
-    private function resetCache(EntityStorageInterface $storage)
-    {
-        $storage->resetCache();
     }
 }

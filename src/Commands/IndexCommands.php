@@ -3,6 +3,9 @@
 namespace Drupal\wmsearch\Commands;
 
 use Consolidation\AnnotatedCommand\AnnotationData;
+use Consolidation\AnnotatedCommand\CommandData;
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\wmsearch\Service\Api\IndexApi;
 use Drupal\wmsearch\Service\Api\ReindexApi;
 use Drupal\wmsearch\Service\Api\TaskApi;
@@ -12,6 +15,8 @@ use Symfony\Component\Console\Input\InputInterface;
 
 class IndexCommands extends DrushCommands
 {
+    /** @var EntityTypeManagerInterface */
+    protected $entityTypeManager;
     /** @var Indexer */
     protected $indexer;
     /** @var IndexApi */
@@ -24,12 +29,14 @@ class IndexCommands extends DrushCommands
     protected $defaultIndex;
 
     public function __construct(
+        EntityTypeManagerInterface $entityTypeManager,
         Indexer $indexer,
         IndexApi $indexApi,
         ReindexApi $reindexApi,
         TaskApi $taskApi,
         $defaultIndex
     ) {
+        $this->entityTypeManager = $entityTypeManager;
         $this->indexer = $indexer;
         $this->indexApi = $indexApi;
         $this->reindexApi = $reindexApi;
@@ -46,10 +53,31 @@ class IndexCommands extends DrushCommands
      * @option from Continue from last id
      * @option limit Amount of items you have to process
      * @option offset Amount of items you have to process
+     * @option entity-type The entity type that should be indexed
      */
-    public function queue($options = ['from' => '0', 'limit' => '0', 'offset' => '0'])
+    public function queue($options = ['from' => '0', 'limit' => '0', 'offset' => '0', 'entity-type' => ''])
     {
-        $this->indexer->queueAll($options['from'], $options['limit'], $options['offset']);
+        $this->indexer->queueAll($options['from'], $options['limit'], $options['offset'], $options['entity-type']);
+    }
+
+    /**
+     * @hook validate wmsearch:queue
+     */
+    public function validateQueue(CommandData $commandData)
+    {
+        $options = $commandData->options();
+
+        if ($options['from'] && !$options['entity-type']) {
+            throw new \InvalidArgumentException('The entity-type option is required when the from option is specified.');
+        }
+
+        if ($options['entity-type']) {
+            try {
+                $this->entityTypeManager->getDefinition($options['entity-type']);
+            } catch (PluginNotFoundException $e) {
+                throw new \InvalidArgumentException(sprintf('Entity type with id %s does not exist.', $options['entity-type']));
+            }
+        }
     }
 
     /**

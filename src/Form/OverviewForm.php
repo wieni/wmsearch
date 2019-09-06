@@ -390,10 +390,23 @@ class OverviewForm extends FormBase
     public function saveSynonyms(array $form, FormStateInterface $formState)
     {
         $synonyms = explode(PHP_EOL, $formState->getValue('synonyms'));
-        $synonyms = array_map('trim', $synonyms);
+
+        $synonyms = array_map(
+            function (string $value) {
+                $words = explode(',', $value);
+                $words = array_map('trim', $words);
+                $words = array_filter($words);
+                $words = array_map('strtolower', $words);
+                $value = implode(', ', $words);
+
+                return $value;
+            },
+            $synonyms
+        );
+
         $synonyms = array_filter($synonyms);
 
-        if ($synonyms == $this->state->get('wmsearch.synonyms')) {
+        if ($synonyms === $this->state->get('wmsearch.synonyms')) {
             $this->messenger->addStatus($this->t('Nothing changed.'));
             return;
         }

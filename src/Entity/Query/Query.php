@@ -63,6 +63,11 @@ class Query implements QueryInterface, HighlightInterface
         return $this->set('_source', $source);
     }
 
+    public function setSort(array $sort)
+    {
+        return $this->set('sort', $sort);
+    }
+
     public function addCompletion($field, $query, $fuzzy = 2)
     {
         return $this
@@ -95,15 +100,41 @@ class Query implements QueryInterface, HighlightInterface
         return $this->set('query', 'bool', 'must_not', [$type => $query]);
     }
 
-    public function setFunctionScore(array $function)
+    protected function ensureFunctionScore()
     {
-        if ($this->has('query') && !$this->has('query', 'function_score')) {
+        if (!$this->has('query', 'function_score') && $this->has('query')) {
             $q = $this->get('query');
             $this->del('query');
-            $function['query'] = $q;
+            $this->set('query', 'function_score', 'query', $q);
         }
 
-        return $this->set('query', 'function_score', $function);
+        if (!$this->has('query', 'function_score', 'functions')) {
+            $this->set('query', 'function_score', 'functions', []);
+        }
+    }
+
+    public function setFunctionScoreBoostMode(string $value)
+    {
+        $this->ensureFunctionScore();
+
+        return $this->set('query', 'function_score', 'boost_mode', $value);
+    }
+
+    public function setFunctionScoreScoreMode(string $value)
+    {
+        $this->ensureFunctionScore();
+
+        return $this->set('query', 'function_score', 'score_mode', $value);
+    }
+
+    public function addFunctionScoreFunction(array $function)
+    {
+        $this->ensureFunctionScore();
+
+        $functions = $this->get('query', 'function_score', 'functions');
+        $functions[] = $function;
+
+        return $this->set('query', 'function_score', 'functions', $functions);
     }
 
     public function setDecayFunction(
@@ -124,7 +155,18 @@ class Query implements QueryInterface, HighlightInterface
             $params['offset'] = $offset;
         }
 
-        return $this->setFunctionScore([$type => [$field => $params]]);
+        return $this->addFunctionScoreFunction([
+            $type => [$field => $params],
+        ]);
+    }
+
+    public function addShould(array $value)
+    {
+        if ($this->has('query', 'function_score')) {
+            return $this->add('query', 'function_score', 'query', 'bool', 'should', $value);
+        }
+
+        return $this->add('query', 'bool', 'should', $value);
     }
 
     /**
