@@ -90,8 +90,12 @@ function wmsearch_entity_translation_insert(EntityInterface $e)
     wmsearch_queue($e);
 }
 
-function wmsearch_path_insert(array $path)
+function wmsearch_path_insert($path)
 {
+    if (!is_array($path)) {
+        return;
+    }
+
     $url = Url::fromUri('internal:' . $path['source']);
 
     if (!$url->isRouted() || !preg_match('#^entity\.(.+)\.canonical$#', $url->getRouteName())) {
@@ -105,12 +109,12 @@ function wmsearch_path_insert(array $path)
     wmsearch_queue($entity);
 }
 
-function wmsearch_path_update(array $path)
+function wmsearch_path_update($path)
 {
     wmsearch_path_insert($path);
 }
 
-function wmsearch_path_delete(array $path)
+function wmsearch_path_delete($path)
 {
     wmsearch_path_insert($path);
 }
