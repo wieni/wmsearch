@@ -1,5 +1,6 @@
 {
     "name": "wieni/wmsearch",
+    "type": "drupal-module",
     "description": "Elasticsearch api",
     "license": "GPL-3.0-only",
     "authors": [
@@ -8,13 +9,13 @@
             "email": "info@wieni.be"
         }
     ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "type": "drupal-module",
     "require": {
         "php": ">=7.0.0",
         "drupal/core": "^8.5",
         "guzzlehttp/guzzle": "^6.1"
+    },
+    "suggest": {
+        "drupal/queue_ui": "to be able to fill and process the queue through the admin interface"
     },
     "extra": {
         "drush": {
@@ -23,7 +24,6 @@
             }
         }
     },
-    "suggest": {
-        "drupal/queue_ui": "to be able to fill and process the queue through the admin interface"
-    }
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
