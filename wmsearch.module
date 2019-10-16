@@ -171,11 +171,7 @@ function wmsearch_cron()
         $message = 'Successfully removed synonyms from Elastic mapping.';
     }
 
-    if (Drush::hasContainer()) {
-        Drush::logger()->info($message);
-    } else {
-        Drupal::logger('wmsearch')->info($message);
-        Drupal::messenger()->addMessage($message);
-    }
+    Drupal::logger('wmsearch')->info($message);
+    Drupal::messenger()->addMessage($message);
 }
 
