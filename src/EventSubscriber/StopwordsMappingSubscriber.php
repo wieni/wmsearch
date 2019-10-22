@@ -83,6 +83,7 @@ class StopwordsMappingSubscriber implements EventSubscriberInterface
         $mapping = $event->getMapping();
 
         foreach ($this->languageManager->getLanguages() as $language) {
+            $custom = $this->state->get('wmsearch.stopwords.custom', '_none_');
             $whitelist = $this->state->get('wmsearch.stopwords.whitelist', []);
             $blacklist = $this->state->get('wmsearch.stopwords.blacklist', []);
 
@@ -91,11 +92,18 @@ class StopwordsMappingSubscriber implements EventSubscriberInterface
             $lists = array_diff($lists, $blacklist);
             $lists = array_unique($lists);
 
-            foreach ($lists as $list) {
-                $filterName = 'stopwords_' . trim($list, '_');
+            $filters = [
+                'stopwords_custom' => $custom,
+            ];
+
+            foreach ($lists as $listName) {
+                $filters['stopwords_' . trim($listName, '_')] = $listName;
+            }
+
+            foreach ($filters as $filterName => $stopWords) {
                 $mapping['settings']['analysis']['filter'][$filterName] = [
                     'type' => 'stop',
-                    'stopwords' => $list,
+                    'stopwords' => $stopWords,
                 ];
 
                 foreach (self::ANALYZERS_WITH_STOPWORDS as $analyzerName) {
