@@ -82,3 +82,10 @@ services:
             - '%wmsearch.json.path%'
         tags:
             - { name: http_middleware, priority: 250, responder: true }
+
+    wmsearch.stopwords_mapping.subscriber:
+        class: Drupal\wmsearch\EventSubscriber\StopwordsMappingSubscriber
+        arguments:
+            - '@language_manager'
+            - '@state'
+        tags: [{ name: event_subscriber }]

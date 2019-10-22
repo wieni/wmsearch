@@ -10,6 +10,7 @@ use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\queue_ui\QueueUIBatch;
+use Drupal\wmsearch\EventSubscriber\StopwordsMappingSubscriber;
 use Drupal\wmsearch\Service\Api\AliasApi;
 use Drupal\wmsearch\Service\Api\IndexApi;
 use Drupal\wmsearch\Service\Api\StatsApi;
@@ -111,6 +112,16 @@ class OverviewForm extends FormBase
         ];
 
         $this->buildSynonymsForm($form);
+
+        $form['stopwords'] = [
+            '#type' => 'details',
+            '#group' => 'tabs',
+            '#title' => $this->t('Stop words'),
+            '#access' => $this->currentUser()->hasPermission('administer wmsearch stopwords'),
+            '#tree' => true,
+        ];
+
+        $this->buildStopwordsForm($form);
 
         $form['decay'] = [
             '#type' => 'details',
@@ -234,6 +245,46 @@ class OverviewForm extends FormBase
             '#name' => 'save_synonyms',
             '#submit' => [
                 [$this, 'saveSynonyms'],
+            ],
+        ];
+    }
+
+    protected function buildStopwordsForm(array &$form)
+    {
+        $defaultLists = StopwordsMappingSubscriber::getDefaultLists();
+
+        $form['stopwords']['whitelist'] = [
+            '#type' => 'select',
+            '#multiple' => true,
+            '#options' => array_combine($defaultLists, $defaultLists),
+            '#default_value' => $this->state->get('wmsearch.stopwords.whitelist', []),
+            '#title' => $this->t('Whitelist'),
+            '#description' => $this->t('Extra stopword lists to include. By default, all stopword lists of active languages are included.'),
+        ];
+
+        $form['stopwords']['blacklist'] = [
+            '#type' => 'select',
+            '#multiple' => true,
+            '#options' => array_combine($defaultLists, $defaultLists),
+            '#default_value' => $this->state->get('wmsearch.stopwords.blacklist', []),
+            '#title' => $this->t('Blacklist'),
+            '#description' => $this->t('Stopword lists to never include.'),
+        ];
+
+        $form['stopwords']['custom'] = [
+            '#type' => 'textarea',
+            '#rows' => 10,
+            '#default_value' => implode(PHP_EOL, $this->state->get('wmsearch.stopwords.custom', [])),
+            '#title' => $this->t('Custom'),
+            '#description' => $this->t('Please enter a list of stop words, one per line.'),
+        ];
+
+        $form['stopwords']['actions']['save_stopwords'] = [
+            '#type' => 'submit',
+            '#value' => $this->t('Save'),
+            '#name' => 'save_stopwords',
+            '#submit' => [
+                [$this, 'saveStopwords'],
             ],
         ];
     }
@@ -414,6 +465,21 @@ class OverviewForm extends FormBase
         $this->state->set('wmsearch.synonymsChanged', true);
         $this->state->set('wmsearch.synonyms', $synonyms);
         $this->messenger->addStatus($this->t('Successfully saved synonyms.'));
+    }
+
+    public function saveStopwords(array $form, FormStateInterface $formState)
+    {
+        $custom = explode(PHP_EOL, $formState->getValue(['stopwords', 'custom']));
+        $custom = array_map('trim', $custom);
+        $this->state->set('wmsearch.stopwords.custom', $custom);
+
+        $whitelist = array_keys($formState->getValue(['stopwords', 'whitelist']));
+        $this->state->set('wmsearch.stopwords.whitelist', $whitelist);
+
+        $blacklist = array_keys($formState->getValue(['stopwords', 'blacklist']));
+        $this->state->set('wmsearch.stopwords.blacklist', $blacklist);
+
+        $this->messenger->addStatus($this->t('Successfully saved stopwords.'));
     }
 
     public function saveDecay(array $form, FormStateInterface $formState)

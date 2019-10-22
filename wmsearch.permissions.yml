@@ -6,6 +6,10 @@ administer wmsearch synonyms:
     title: 'Administer wmsearch synonyms'
     description: 'Edit the list of synonyms'
 
+administer wmsearch stopwords:
+    title: 'Administer wmsearch stopwords'
+    description: 'Edit the list of stopwords'
+
 administer wmsearch age decay:
     title: 'Administer wmsearch age decay settings'
     description: 'Edit the settings of the age decay feature'
