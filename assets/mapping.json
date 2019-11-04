@@ -103,7 +103,12 @@
                     "analyzer": "ngram",
                     "search_analyzer": "standard_synonym",
                     "type": "text",
-                    "boost": 2
+                    "boost": 2,
+                    "fields": {
+                        "raw": {
+                            "type": "text"
+                        }
+                    }
                 },
                 "terms": {
                     "analyzer": "ngram",
@@ -115,7 +120,12 @@
                     "analyzer": "ngram",
                     "search_analyzer": "standard_synonym",
                     "type": "text",
-                    "boost": 1.2
+                    "boost": 1.2,
+                    "fields": {
+                        "raw": {
+                            "type": "text"
+                        }
+                    }
                 },
                 "body": {
                     "analyzer": "html",

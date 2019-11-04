@@ -9,7 +9,7 @@ class QueryBuilder implements QueryBuilderInterface
     protected $highlightAmount = 1;
     protected $highlightSize = 120;
 
-    protected $fields = ['title', 'intro', 'body', 'terms'];
+    protected $fields = ['title', 'title.raw', 'intro', 'intro.raw', 'body', 'terms'];
     protected $highlights = ['title', 'intro', 'body'];
 
     protected $operator = 'or';
