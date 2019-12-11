@@ -1,6 +1,5 @@
 {
     "settings": {
-        "index.mapper.dynamic": false,
         "index.number_of_shards": 1,
         "index.number_of_replicas": 0,
         "analysis": {
@@ -32,10 +31,10 @@
                         "ngram"
                     ]
                 },
-                "standard_synonym" : {
+                "standard_synonym": {
                     "type": "custom",
-                    "tokenizer" : "standard",
-                    "filter" : [
+                    "tokenizer": "standard",
+                    "filter": [
                         "asciifolding",
                         "lowercase",
                         "synonym"
@@ -48,98 +47,92 @@
                     "min_gram": 2,
                     "max_gram": 20
                 },
-                "synonym" : {
-                    "type" : "synonym",
-                    "synonyms": ["temp, temp"]
+                "synonym": {
+                    "type": "synonym",
+                    "synonyms": [
+                        "temp, temp"
+                    ]
                 }
             }
         }
     },
     "mappings": {
-        "_default_": {
-            "dynamic": "strict",
-            "_all": {
-                "enabled": false
-            }
-        },
-        "page": {
-            "dynamic": false,
-            "_all": {
-                "enabled": false
+        "dynamic": false,
+        "properties": {
+            "docType": {
+                "type": "keyword"
             },
-            "properties": {
-                "type": {
-                    "type": "text"
-                },
-                "bundle": {
-                    "type": "text"
-                },
-                "language": {
-                    "type": "text"
-                },
-                "suggest": {
-                    "type": "completion",
-                    "analyzer": "ascii",
-                    "search_analyzer": "standard_synonym",
-                    "contexts": [
-                        {
-                            "name": "language",
-                            "type": "category",
-                            "path": "language"
-                        },
-                        {
-                            "name": "bundle",
-                            "type": "category",
-                            "path": "bundle"
-                        },
-                        {
-                            "name": "type",
-                            "type": "category",
-                            "path": "type"
-                        }
-                    ]
-                },
-                "title": {
-                    "analyzer": "ngram",
-                    "search_analyzer": "standard_synonym",
-                    "type": "text",
-                    "boost": 2,
-                    "fields": {
-                        "raw": {
-                            "type": "text"
-                        }
+            "type": {
+                "type": "keyword"
+            },
+            "bundle": {
+                "type": "keyword"
+            },
+            "language": {
+                "type": "keyword"
+            },
+            "suggest": {
+                "type": "completion",
+                "analyzer": "ascii",
+                "search_analyzer": "standard_synonym",
+                "contexts": [
+                    {
+                        "name": "language",
+                        "type": "category",
+                        "path": "language"
+                    },
+                    {
+                        "name": "bundle",
+                        "type": "category",
+                        "path": "bundle"
+                    },
+                    {
+                        "name": "type",
+                        "type": "category",
+                        "path": "type"
                     }
-                },
-                "terms": {
-                    "analyzer": "ngram",
-                    "search_analyzer": "standard_synonym",
-                    "type": "text",
-                    "boost": 1.5
-                },
-                "intro": {
-                    "analyzer": "ngram",
-                    "search_analyzer": "standard_synonym",
-                    "type": "text",
-                    "boost": 1.2,
-                    "fields": {
-                        "raw": {
-                            "type": "text"
-                        }
+                ]
+            },
+            "title": {
+                "analyzer": "ngram",
+                "search_analyzer": "standard_synonym",
+                "type": "text",
+                "boost": 2,
+                "fields": {
+                    "raw": {
+                        "type": "text"
                     }
-                },
-                "body": {
-                    "analyzer": "html",
-                    "search_analyzer": "standard_synonym",
-                    "type": "text"
-                },
-                "created": {
-                    "type": "date",
-                    "format": "epoch_second"
-                },
-                "changed": {
-                    "type": "date",
-                    "format": "epoch_second"
                 }
+            },
+            "terms": {
+                "analyzer": "ngram",
+                "search_analyzer": "standard_synonym",
+                "type": "text",
+                "boost": 1.5
+            },
+            "intro": {
+                "analyzer": "ascii",
+                "search_analyzer": "standard_synonym",
+                "type": "text",
+                "boost": 1.2,
+                "fields": {
+                    "raw": {
+                        "type": "text"
+                    }
+                }
+            },
+            "body": {
+                "analyzer": "html",
+                "search_analyzer": "standard_synonym",
+                "type": "text"
+            },
+            "created": {
+                "type": "date",
+                "format": "epoch_second"
+            },
+            "changed": {
+                "type": "date",
+                "format": "epoch_second"
             }
         }
     }

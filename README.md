@@ -6,11 +6,9 @@ The api allows adding different document types but only `page` is 'managed'.
 
 # API
 
-inject `wmsearch.api`
+inject `wmsearch.api.index`
 
 ## Index
-
-Only implemented by Drupal\wmsearch\Service\Api, not by Drupal\wmsearch\Service\BaseApi.
 
 `$api->createIndex();`
 
@@ -18,11 +16,11 @@ Only implemented by Drupal\wmsearch\Service\Api, not by Drupal\wmsearch\Service\
 
 ## Document
 
-`$api->addDoc(DocumentInterface); // upsert`
+`$api->addDoc(ElasticEntityInterface $entity); // upsert`
 
-`$api->delDoc($docType, $id);`
+`$api->delDoc($id);`
 
-`$api->getDoc($docType, $id);`
+`$api->getDoc($id);`
 
 ## Search
 
@@ -79,60 +77,68 @@ GPL
 
 # Examples
 
-## DocumentInterface
+## ElasticEntityInterface
 
 This assumes [wieni/wmmodel](https://github.com/wieni/wmmodel) or something similar.
 
 ```php
-class Dish extends Node implements WmModelInterface, DocumentInterface
+class Article extends Node implements WmModelInterface, ElasticEntityInterface
 {
     use EntityPageTrait;
 
-    public function toElasticArray($docType)
+    public function getElasticTypes()
     {
-        if ($docType !== 'page') {
-            throw new \RuntimeException('Not prepared for that');
-        }
-
-        $bodies = array_filter(
-            array_map(
-                function (EckModel $item) {
-                    if ($item instanceof Step) {
-                        return $item->getDescription();
-                    }
-
-                    return false;
-                },
-                $this->getPreparation()
-            )
-        );
-
-        $tags = array_map(
-            function (HiddenTag $tag) {
-                return $tag->getTitle();
-            },
-            $this->getTags()
-        );
-
-        $d = [
-            'title' => $this->getTitle(),
-            'intro' => $this->getDescription(),
-            'created' => $this->getCreatedTime(),
-            'changed' => $this->getChangedTime(),
-            'body' => array_values($bodies),
-            'terms' => $tags,
-            'suggest' => $this->getTitle(),
-        ];
-
-        return $this->getBaseElasticArray($docType) + $d;
+        return ['page'];
     }
 
-    ...
+    public function getElasticDocumentCollection($type)
+    {
+        return 'mymodule.elastic.article.collection';
+    }
 }
 ```
 
+## EntityDocumentCollectionInterface
+
+```yaml
+# mymodule.services.yml
+services:
+    mymodule.elastic.article.collection:
+        class: Drupal\mymodule\Service\Elastic\Collection\ArticleCollection
 ```
-$dish = $nodeStorage->load(123);
+
+```php
+namespace Drupal\mymodule\Service\Elastic\Collection;
+
+use Drupal\wmsearch\Entity\Document\EntityDocumentCollection;
+use Drupal\wmsearch\Exception\NotIndexableException;
+
+class ArticleCollection extends EntityDocumentCollection
+{
+    /** @var \Drupal\mymodule\Entity\Node\Article */
+    protected $entity;
+
+    public function toElasticArray($elasticId)
+    {
+        if (!$this->entity->isPublished()) {
+            throw new NotIndexableException();
+        }
+
+        return [
+            'id' => $this->entity->id(), // this isn't the elasticId
+            'title' => $this->entity->getTitle(),
+            'url' => $this->entity->toUrl()->toString(),
+            'language' => $this->entity->language()->getId(),
+            // ...
+        ];
+    }
+}
+```
+
+## Programmatically index
+
+```
+$article = $nodeStorage->load(123);
 $api->addDoc($dish);
 ```
 

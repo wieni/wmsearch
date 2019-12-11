@@ -96,7 +96,7 @@ class IndexCommands extends DrushCommands
      *
      * @command wmsearch:reindex
      * @aliases wmsearch-reindex,wmsri
-     * 
+     *
      * @param string $sourceIndex
      * @param string $destIndex
      * @param array $options
@@ -170,12 +170,12 @@ class IndexCommands extends DrushCommands
 
         if (!empty($result['response']['failures'])) {
             $this->logger->error(
-                sprintf('Task aborted with %d failures.', $taskId, count($result['response']['failures']))
+                sprintf('Task %d aborted with %d failures.', $taskId, count($result['response']['failures']))
             );
         } elseif (!empty($result['error'])) {
             $this->logger->error(
                 sprintf(
-                    'Task aborted with error: %s (reason: %s), caused by %s (reason: %s).',
+                    'Task %d aborted with error: %s (reason: %s), caused by %s (reason: %s).',
                     $taskId,
                     $result['error']['type'],
                     $result['error']['reason'],
@@ -186,7 +186,7 @@ class IndexCommands extends DrushCommands
         } else {
             $this->logger->notice(
                 sprintf(
-                    'Successfully completed task (created: %d, updated: %d, deleted: %d)',
+                    'Successfully completed task %d (created: %d, updated: %d, deleted: %d)',
                     $taskId,
                     $result['task']['status']['created'],
                     $result['task']['status']['updated'],

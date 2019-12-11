@@ -11,6 +11,11 @@ class SearchResult
         $this->data = $data;
     }
 
+    public function getData()
+    {
+        return $this->data;
+    }
+
     /**
      * @return Hit[]
      */
@@ -56,7 +61,7 @@ class SearchResult
 
     public function getTotal()
     {
-        return $this->get('hits', 'total');
+        return $this->get('hits', 'total', 'value');
     }
 
     public function getDuration()

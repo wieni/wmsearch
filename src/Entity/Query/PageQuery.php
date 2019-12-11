@@ -8,7 +8,10 @@ class PageQuery extends Query
 {
     public function __construct(array $query = [])
     {
-        parent::__construct($query, 'page');
+        parent::__construct($query);
+        $this->addFilter('term', [
+            'docType' => 'page',
+        ]);
     }
 
     public function complete($query, $fuzzy = 0)

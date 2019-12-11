@@ -1,8 +1,9 @@
 <?php
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
+use Drupal\wmsearch\Entity\Document\ElasticEntityInterface;
 use Drupal\wmsearch\Exception\ApiException;
-use Drupal\wmsearch\Entity\Document\DocumentInterface;
 use Drupal\Core\TypedData\TranslatableInterface;
 use Drush\Drush;
 
@@ -11,9 +12,11 @@ use Drush\Drush;
  */
 function wmsearch_queue(EntityInterface $e, $allTranslations = false)
 {
-    if (!$e instanceof DocumentInterface) {
+    if (!$e instanceof ElasticEntityInterface) {
         return;
     }
+    $collectionManager = \Drupal::getContainer()
+        ->get('wmsearch.document_collection.manager');
 
     $languages = [$e->language()];
     if (
@@ -27,13 +30,21 @@ function wmsearch_queue(EntityInterface $e, $allTranslations = false)
 
     foreach ($languages as $language) {
         $translation = $e->getTranslation($language->getId());
-        if (!$translation) {
+        if (!$translation instanceof ElasticEntityInterface) {
             continue;
         }
 
         $types = [];
         foreach ($translation->getElasticTypes() as $docType) {
-            $types[$docType] = $translation->getElasticId($docType);
+            $documentCollection = $collectionManager
+                ->getDocumentCollection($translation, $docType);
+
+            $types[$docType] = [
+                'collection' => $documentCollection->getCollectionName(),
+                'elasticIds' => $collectionManager->getIndexedIds(
+                    $documentCollection
+                )
+            ];
         }
 
         \Drupal::service('queue')
@@ -79,6 +90,35 @@ function wmsearch_entity_translation_insert(EntityInterface $e)
     wmsearch_queue($e);
 }
 
+function wmsearch_path_insert($path)
+{
+    if (!is_array($path)) {
+        return;
+    }
+
+    $url = Url::fromUri('internal:' . $path['source']);
+
+    if (!$url->isRouted() || !preg_match('#^entity\.(.+)\.canonical$#', $url->getRouteName())) {
+        return;
+    }
+
+    $params = $url->getRouteParameters();
+    $entityType = key($params);
+    $entity = Drupal::entityTypeManager()->getStorage($entityType)->load($params[$entityType]);
+
+    wmsearch_queue($entity);
+}
+
+function wmsearch_path_update($path)
+{
+    wmsearch_path_insert($path);
+}
+
+function wmsearch_path_delete($path)
+{
+    wmsearch_path_insert($path);
+}
+
 function wmsearch_entity_id(EntityInterface $e)
 {
     $id = $e->id();
@@ -105,6 +145,9 @@ function wmsearch_rebuild()
     try {
         \Drupal::service('wmsearch.api.index')->createIndex(false);
     } catch (ApiException $e) {
+        if ($e->isIndexExists()) {
+            return;
+        }
         \Drupal::logger('wmsearch')->error($e->getMessage());
     }
 }
@@ -128,11 +171,7 @@ function wmsearch_cron()
         $message = 'Successfully removed synonyms from Elastic mapping.';
     }
 
-    if (Drush::hasContainer()) {
-        Drush::logger()->info($message);
-    } else {
-        Drupal::logger('wmsearch')->info($message);
-        Drupal::messenger()->addMessage($message);
-    }
+    Drupal::logger('wmsearch')->info($message);
+    Drupal::messenger()->addMessage($message);
 }
 

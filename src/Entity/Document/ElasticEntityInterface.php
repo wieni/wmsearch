@@ -3,19 +3,16 @@
 namespace Drupal\wmsearch\Entity\Document;
 
 /**
- * Convenience trait for implementors of Drupal\Core\Entity\EntityInterface.
+ * @mixin \Drupal\Core\Entity\EntityInterface
  */
-trait EntityPageTrait
+interface ElasticEntityInterface
 {
     /**
      * Return the document types this entity supports.
      *
      * @return string[]
      */
-    public function getElasticTypes()
-    {
-        return ['page'];
-    }
+    public function getElasticTypes();
 
     /**
      * Returns a DocumentCollectionInterface instance or service name that
@@ -25,13 +22,6 @@ trait EntityPageTrait
      *
      * @return \Drupal\wmsearch\Entity\Document\DocumentCollectionInterface|string
      */
-    public function getElasticDocumentCollection($type)
-    {
-        $collection = new EntityDocumentCollection();
-        $collection->setEntity($this);
-        $collection->setDocumentType($type);
-
-        return $collection;
-    }
+    public function getElasticDocumentCollection($type);
 }
 

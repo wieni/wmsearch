@@ -2,6 +2,7 @@
 
 namespace Drupal\wmsearch\Middleware;
 
+use Drupal\wmsearch\Entity\Query\HighlightInterface;
 use Drupal\wmsearch\Exception\ApiException;
 use Drupal\wmsearch\Service\Api\SearchApi;
 use Drupal\wmsearch\Service\ResultFormatterInterface;
@@ -57,8 +58,11 @@ class EarlyJson implements HttpKernelInterface
             }
 
             $q = $this->builder->build($query, $offset, $amount);
-            $pre = $q->getHighlightPreTag();
-            $post = $q->getHighlightPostTag();
+            $pre = $post = '';
+            if ($q instanceof HighlightInterface) {
+                $pre = $q->getHighlightPreTag();
+                $post = $q->getHighlightPostTag();
+            }
             return new JsonResponse(
                 $this->formatter->format(
                     $this->searchApi->highlightSearch($q),
