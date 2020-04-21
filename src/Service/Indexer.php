@@ -15,23 +15,24 @@ class Indexer
     protected $memoryCache;
     /** @var IndexApi */
     protected $indexApi;
+    /** @var string[] */
+    protected $entityTypes;
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,
         MemoryCacheInterface $memoryCache,
-        IndexApi $indexApi
+        IndexApi $indexApi,
+        array $entityTypes
     ) {
         $this->entityTypeManager = $entityTypeManager;
         $this->memoryCache = $memoryCache;
         $this->indexApi = $indexApi;
+        $this->entityTypes = $entityTypes;
     }
 
     protected function getEntityTypes(): array
     {
-        return [
-            'node',
-            'taxonomy_term',
-        ];
+        return $this->entityTypes;
     }
 
     public function queueAll($from, $limit, $offset, $entityType = null)

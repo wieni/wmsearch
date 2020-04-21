@@ -8,6 +8,11 @@ parameters:
     wmsearch.json.formatter.class: 'Drupal\wmsearch\Service\ResultFormatter'
     wmsearch.json.query_builder.class: 'Drupal\wmsearch\Service\QueryBuilder'
 
+    # Entity types the "drush wmsearch:queue" command will queue for indexing
+    wmsearch.indexer.entity_types:
+        - node
+        - taxonomy_term
+
 services:
     wmsearch.api.base:
         class: Drupal\wmsearch\Service\Api\BaseApi
@@ -58,6 +63,7 @@ services:
             - '@entity_type.manager'
             - '@entity.memory_cache'
             - '@wmsearch.api.index'
+            - '%wmsearch.indexer.entity_types%'
 
     wmsearch.document_collection.manager:
         class: Drupal\wmsearch\Service\DocumentCollectionManager
