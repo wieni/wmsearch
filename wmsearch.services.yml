@@ -28,6 +28,7 @@ services:
             - '@module_handler'
             - '@event_dispatcher'
             - '@file_system'
+            - '@state'
             - '@wmsearch.api.alias'
             - '@wmsearch.api.reindex'
             - '@wmsearch.api.task'

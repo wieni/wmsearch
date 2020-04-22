@@ -462,7 +462,7 @@ class OverviewForm extends FormBase
             return;
         }
 
-        $this->state->set('wmsearch.synonymsChanged', true);
+        $this->indexApi->setReindexNeeded();
         $this->state->set('wmsearch.synonyms', $synonyms);
         $this->messenger->addStatus($this->t('Successfully saved synonyms.'));
     }
@@ -471,14 +471,23 @@ class OverviewForm extends FormBase
     {
         $custom = explode(PHP_EOL, $formState->getValue(['stopwords', 'custom']));
         $custom = array_map('trim', $custom);
+        $customChanged = $custom !== $this->state->get('wmsearch.stopwords.custom');
         $this->state->set('wmsearch.stopwords.custom', $custom);
 
         $whitelist = array_keys($formState->getValue(['stopwords', 'whitelist']));
+        $whitelistChanged = $whitelist !== $this->state->get('wmsearch.stopwords.whitelist');
         $this->state->set('wmsearch.stopwords.whitelist', $whitelist);
 
         $blacklist = array_keys($formState->getValue(['stopwords', 'blacklist']));
+        $blacklistChanged = $blacklist !== $this->state->get('wmsearch.stopwords.blacklist');
         $this->state->set('wmsearch.stopwords.blacklist', $blacklist);
 
+        if (!$customChanged && !$whitelistChanged && !$blacklistChanged) {
+            $this->messenger->addStatus($this->t('Nothing changed.'));
+            return;
+        }
+
+        $this->indexApi->setReindexNeeded();
         $this->messenger->addStatus($this->t('Successfully saved stopwords.'));
     }
 

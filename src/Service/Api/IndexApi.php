@@ -3,6 +3,7 @@
 namespace Drupal\wmsearch\Service\Api;
 
 use Drupal\Core\File\FileSystem;
+use Drupal\Core\State\StateInterface;
 use Drupal\wmsearch\Entity\Document\DocumentInterface;
 use Drupal\wmsearch\Exception\ApiException;
 use Drupal\wmsearch\Exception\NotIndexableException;
@@ -25,6 +26,8 @@ class IndexApi extends BaseApi
     protected $eventDispatcher;
     /** @var FileSystem */
     protected $fileSystem;
+    /** @var StateInterface */
+    protected $state;
     /** @var AliasApi */
     protected $aliasApi;
     /** @var ReindexApi */
@@ -39,6 +42,7 @@ class IndexApi extends BaseApi
         ModuleHandlerInterface $moduleHandler,
         EventDispatcherInterface $eventDispatcher,
         FileSystem $fileSystem,
+        StateInterface $state,
         AliasApi $aliasApi,
         ReindexApi $reindexApi,
         TaskApi $taskApi
@@ -55,6 +59,7 @@ class IndexApi extends BaseApi
         $this->index = $index;
         $this->eventDispatcher = $eventDispatcher;
         $this->fileSystem = $fileSystem;
+        $this->state = $state;
         $this->aliasApi = $aliasApi;
         $this->reindexApi = $reindexApi;
         $this->taskApi = $taskApi;
@@ -81,7 +86,7 @@ class IndexApi extends BaseApi
             throw new \RuntimeException('Could not fetch base mapping');
         }
 
-        if ($synonyms = \Drupal::state()->get('wmsearch.synonyms')) {
+        if ($synonyms = $this->state->get('wmsearch.synonyms')) {
             $mapping['settings']['analysis']['filter']['synonym']['synonyms'] = $synonyms;
         }
 
@@ -287,5 +292,15 @@ class IndexApi extends BaseApi
     public function setIndexName($index)
     {
         $this->index = $index;
+    }
+
+    public function setReindexNeeded(bool $value = true): void
+    {
+        $this->state->set('wmsearch.reindexNeeded', $value);
+    }
+
+    public function isReindexNeeded(): bool
+    {
+        return $this->state->get('wmsearch.reindexNeeded', false);
     }
 }
