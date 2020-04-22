@@ -111,28 +111,18 @@ function wmsearch_rebuild()
 
 function wmsearch_cron()
 {
-    $state = Drupal::state();
     $api = Drupal::getContainer()->get('wmsearch.api.index');
-    $synonyms = $state->get('wmsearch.synonyms');
 
-    if (!$state->get('wmsearch.synonymsChanged', false)) {
+    if (!$api->isReindexNeeded()) {
         return;
     }
 
     $api->createIndex(true);
-    $state->delete('wmsearch.synonymsChanged');
+    $api->setReindexNeeded(false);
 
-    if ($synonyms) {
-        $message = 'Successfully added synonyms to Elastic mapping.';
-    } else {
-        $message = 'Successfully removed synonyms from Elastic mapping.';
-    }
+    $message = 'Successfully updated Elastic mapping.';
 
-    if (Drush::hasContainer()) {
-        Drush::logger()->info($message);
-    } else {
-        Drupal::logger('wmsearch')->info($message);
-        Drupal::messenger()->addMessage($message);
-    }
+    Drupal::logger('wmsearch')->info($message);
+    Drupal::messenger()->addMessage($message);
 }
 
