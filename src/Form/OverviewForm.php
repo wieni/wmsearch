@@ -359,7 +359,8 @@ class OverviewForm extends FormBase
                 array_filter(
                     $mapping['properties'],
                     function (array $property) {
-                        return $property['type'] === 'date';
+                        return isset($property['type'])
+                            && $property['type'] === 'date';
                     }
                 )
             );
