@@ -50,7 +50,7 @@ class Indexer
                 continue;
             }
 
-            printf("Queuing entities of type %s\n", $definition->getLowercaseLabel());
+            printf("Queuing entities of type %s\n", strtolower($definition->getLabel()));
 
             $storage = $this->entityTypeManager->getStorage($entityTypeId);
             $query = $storage->getQuery();
