@@ -2,6 +2,7 @@
 
 namespace Drupal\wmsearch\Form;
 
+use Drupal\Core\Pager\PagerManagerInterface;
 use Drupal\wmsearch\Exception\ApiException;
 use Drupal\wmsearch\Service\Api\SearchApi;
 use Drupal\wmsearch\Service\QueryBuilderInterface;
@@ -21,17 +22,21 @@ class SimpleSearchForm extends FormBase
     protected $trans;
     /** @var QueryBuilderInterface */
     protected $builder;
+    /** @var PagerManagerInterface */
+    protected $pagerManager;
 
     public function __construct(
         SearchApi $searchApi,
         RequestStack $request,
         QueryBuilderInterface $builder,
-        TranslationManager $trans
+        TranslationManager $trans,
+        PagerManagerInterface $pagerManager
     ) {
         $this->searchApi = $searchApi;
         $this->request = $request;
         $this->builder = $builder;
         $this->trans = $trans;
+        $this->pagerManager = $pagerManager;
     }
 
     public static function create(ContainerInterface $container)
@@ -40,7 +45,8 @@ class SimpleSearchForm extends FormBase
             $container->get('wmsearch.api.search'),
             $container->get('request_stack'),
             $container->get('wmsearch.json.query_builder'),
-            $container->get('string_translation')
+            $container->get('string_translation'),
+            $container->get('pager.manager')
         );
     }
 
@@ -121,7 +127,7 @@ class SimpleSearchForm extends FormBase
             'rows' => $rows,
         ];
 
-        pager_default_initialize($total, $perPage);
+        $this->pagerManager->createPager($total, $perPage);
         $form['pager'] = [
             '#type' => 'pager',
             '#parameters' => ['query' => $query],
