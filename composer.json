@@ -11,8 +11,10 @@
     ],
     "require": {
         "php": ">=7.0.0",
-        "drupal/core": "^8.8 || ^9",
         "guzzlehttp/guzzle": "^6.1"
+    },
+    "conflict": {
+        "drupal/core": "<8.8"
     },
     "suggest": {
         "drupal/queue_ui": "to be able to fill and process the queue through the admin interface"
