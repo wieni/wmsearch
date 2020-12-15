@@ -183,6 +183,58 @@ class Query implements QueryInterface, HighlightInterface
     }
 
     /**
+     * The clause (query) must appear in matching documents and will contribute to the score.
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html
+     */
+    public function addMust(array $value): self
+    {
+        if ($this->has('query', 'function_score')) {
+            return $this->add('query', 'function_score', 'query', 'bool', 'must', $value);
+        }
+
+        return $this->add('query', 'bool', 'must', $value);
+    }
+
+    /**
+     * The clause (query) must not appear in the matching documents. Clauses are executed in filter
+     * context meaning that scoring is ignored and clauses are considered for caching.
+     * Because scoring is ignored, a score of 0 for all documents is returned.
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html
+     */
+    public function addMustNot(array $value): self
+    {
+        if ($this->has('query', 'function_score')) {
+            return $this->add('query', 'function_score', 'query', 'bool', 'must_not', $value);
+        }
+
+        return $this->add('query', 'bool', 'must_not', $value);
+    }
+
+    /**
+     * When you combine a should clause with a filter than all should clauses are optional,
+     * so even documents that only match the filter will be returned.
+     *
+     * You can use the minimum_should_match parameter to specify the number or percentage of
+     * should clauses returned documents must match. If the bool query includes at least one should clause
+     * and no must or filter clauses, the default value is 1. Otherwise, the default value is 0.
+     *
+     * @see https://discuss.elastic.co/t/combine-should-with-filter-search-api/139129/2
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html#bool-min-should-match
+     */
+    public function setMinimumShouldMatch(?string $value): self
+    {
+        if ($this->has('query', 'function_score')) {
+            return $value === null
+                ? $this->del('query', 'function_score', 'query', 'bool', 'minimum_should_match')
+                : $this->set('query', 'function_score', 'query', 'bool', 'minimum_should_match', (int) $value);
+        }
+
+        return $value === null
+            ? $this->del('query', 'bool', 'minimum_should_match')
+            : $this->set('query', 'bool', 'minimum_should_match', (int) $value);
+    }
+
+    /**
      * Add a filter.
      *
      * @param string $type   The filter type. e.g.: 'range'
