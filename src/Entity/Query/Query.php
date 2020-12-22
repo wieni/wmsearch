@@ -71,6 +71,17 @@ class Query implements QueryInterface, HighlightInterface
             ->set('aggs', $name, 'terms', 'size', $size);
     }
 
+    /**
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-nested-aggregation.html
+     */
+    public function addNestedAggregation(string $path, string $name, string $key, $nestedName = null, int $size = 1000): self
+    {
+        return $this
+            ->set('aggs', $name, 'nested', 'path', $path)
+            ->set('aggs', $name, 'aggs', $nestedName ?? $name, 'terms', 'field', $key)
+            ->set('aggs', $name, 'aggs', $nestedName ?? $name, 'terms', 'size', $size);
+    }
+
     public function setSource($source = '*')
     {
         return $this->set('_source', $source);
@@ -247,6 +258,54 @@ class Query implements QueryInterface, HighlightInterface
         }
 
         return $this->add('query', 'bool', 'filter', [$type => $filter]);
+    }
+
+    public function addNestedFilter(string $path, $type, array $filter): self
+    {
+        return $this->addNestedBool('filter', $path, $type, $filter);
+    }
+
+    public function addNestedQuery(string $path, $type, array $filter): self
+    {
+        return $this->addNestedBool('must', $path, $type, $filter);
+    }
+
+    public function addNestedNotQuery(string $path, $type, array $filter): self
+    {
+        return $this->addNestedBool('must_not', $path, $type, $filter);
+    }
+
+    protected function addNestedBool(string $occurrenceType, string $path, $type, array $filter): self
+    {
+        $filterPath = ['query', 'bool', $occurrenceType];
+        if ($this->has('query', 'function_score')) {
+            $filterPath = ['query', 'function_score', 'query', 'bool', $occurrenceType];
+        }
+
+        // Try to merge with an existing nested query with the same path first
+        $keys = array_keys($this->get(...$filterPath) ?? []);
+        foreach ($keys as $key) {
+            if (
+                $this->has(...$filterPath, ...[$key, 'nested'])
+                && $this->get(...$filterPath, ...[$key, 'nested', 'path']) === $path
+            ) {
+                return $this->add(...$filterPath, ...[$key, 'nested', 'query', 'bool', $occurrenceType, [$type => $filter]]);
+            }
+        }
+
+        // Add a new nested query
+        return $this->add(...$filterPath, ...[[
+            'nested' => [
+                'path' => $path,
+                'query' => [
+                    'bool' => [
+                        $occurrenceType => [
+                            [$type => $filter],
+                        ],
+                    ],
+                ],
+            ],
+        ]]);
     }
 
     /**

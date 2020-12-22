@@ -71,19 +71,16 @@ class SearchResult
 
     public function getAggregations()
     {
-        $names = array_keys($this->get('aggregations') ?? []);
+        if ($data = $this->get('aggregations')) {
+            return $this->processAggregations($data);
+        }
 
-        return array_map(
-            function (string $name) {
-                return $this->getAggregation($name);
-            },
-            array_combine($names, $names)
-        );
+        return [];
     }
 
-    public function getAggregation($name)
+    public function getAggregation(...$args)
     {
-        $aggregations = $this->get('aggregations', $name) ?? [];
+        $aggregations = $this->get('aggregations', ...$args) ?? [];
 
         $items = [];
         foreach ($aggregations['buckets'] ?? [] as $item) {
@@ -102,6 +99,25 @@ class SearchResult
         }
 
         return $count;
+    }
+
+    protected function processAggregations(array $aggregation, array $result = [], ?string $key = null): array
+    {
+        if (isset($key, $aggregation['buckets'])) {
+            foreach ($aggregation['buckets'] as $bucket) {
+                $result[$key][$bucket['key']] = $bucket['doc_count'];
+            }
+
+            return $result;
+        }
+
+        foreach ($aggregation as $nestedKey => $nestedValue) {
+            if (is_array($nestedValue)) {
+                $result = $this->processAggregations($nestedValue, $result, $nestedKey);
+            }
+        }
+
+        return $result;
     }
 
     protected function get()
