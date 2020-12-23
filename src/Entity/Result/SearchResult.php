@@ -104,8 +104,12 @@ class SearchResult
     protected function processAggregations(array $aggregation, array $result = [], ?string $key = null): array
     {
         if (isset($key, $aggregation['buckets'])) {
+            $result[$key] = [];
+
             foreach ($aggregation['buckets'] as $bucket) {
-                $result[$key][$bucket['key']] = $bucket['doc_count'];
+                /** @see Query::addReverseNestedAggregation */
+                $result[$key][$bucket['key']] = $bucket["reverse_{$key}"]['doc_count']
+                    ?? $bucket['doc_count'];
             }
 
             return $result;

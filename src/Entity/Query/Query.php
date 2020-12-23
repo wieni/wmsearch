@@ -82,6 +82,24 @@ class Query implements QueryInterface, HighlightInterface
             ->set('aggs', $name, 'aggs', $nestedName ?? $name, 'terms', 'size', $size);
     }
 
+    /**
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-reverse-nested-aggregation.html
+     */
+    public function addReverseNestedAggregation(string $path, string $name, string $key, $nestedName = null, int $size = 1000): self
+    {
+        $nestedName = $nestedName ?? $name;
+        $nestedReverseName = "reverse_{$nestedName}";
+        $nestedReverseBucketsName = "reverse_{$nestedName}_buckets";
+
+        return $this
+            ->set('aggs', $name, 'nested', 'path', $path)
+            ->set('aggs', $name, 'aggs', $nestedName, 'terms', 'field', $key)
+            ->set('aggs', $name, 'aggs', $nestedName, 'terms', 'size', $size)
+            ->set('aggs', $name, 'aggs', $nestedName, 'aggs', $nestedReverseName, 'reverse_nested', new \stdClass())
+            ->set('aggs', $name, 'aggs', $nestedName, 'aggs', $nestedReverseName, 'aggs', $nestedReverseBucketsName, 'terms', 'field', $key)
+            ->set('aggs', $name, 'aggs', $nestedName, 'aggs', $nestedReverseName, 'aggs', $nestedReverseBucketsName, 'terms', 'size', $size);
+    }
+
     public function setSource($source = '*')
     {
         return $this->set('_source', $source);
