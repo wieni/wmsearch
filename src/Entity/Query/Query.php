@@ -100,6 +100,23 @@ class Query implements QueryInterface, HighlightInterface
             ->set('aggs', $name, 'aggs', $nestedName, 'aggs', $nestedReverseName, 'aggs', $nestedReverseBucketsName, 'terms', 'size', $size);
     }
 
+    public function addFilteredReverseNestedAggregation(string $path, string $name, string $key, array $filter, $nestedName = null, int $size = 1000): self
+    {
+        $nestedName = $nestedName ?? $name;
+        $nestedFilterName = "filtered_{$nestedName}";
+        $nestedReverseName = "reverse_{$nestedName}";
+        $nestedReverseBucketsName = "reverse_{$nestedName}_buckets";
+
+        return $this
+            ->set('aggs', $name, 'nested', 'path', $path)
+            ->set('aggs', $name, 'aggs', $nestedFilterName, 'filter', $filter)
+            ->set('aggs', $name, 'aggs', $nestedFilterName, 'aggs', $nestedName, 'terms', 'field', $key)
+            ->set('aggs', $name, 'aggs', $nestedFilterName, 'aggs', $nestedName, 'terms', 'size', $size)
+            ->set('aggs', $name, 'aggs', $nestedFilterName, 'aggs', $nestedName, 'aggs', $nestedReverseName, 'reverse_nested', new \stdClass())
+            ->set('aggs', $name, 'aggs', $nestedFilterName, 'aggs', $nestedName, 'aggs', $nestedReverseName, 'aggs', $nestedReverseBucketsName, 'terms', 'field', $key)
+            ->set('aggs', $name, 'aggs', $nestedFilterName, 'aggs', $nestedName, 'aggs', $nestedReverseName, 'aggs', $nestedReverseBucketsName, 'terms', 'size', $size);
+    }
+
     public function setSource($source = '*')
     {
         return $this->set('_source', $source);
