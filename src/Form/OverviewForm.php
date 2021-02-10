@@ -182,6 +182,15 @@ class OverviewForm extends FormBase
                 [$this, 'recreateIndex'],
             ],
         ];
+
+        $form['index']['actions']['index_recreate_keep_documents'] = [
+            '#type' => 'submit',
+            '#value' => 'Recreate index and keep documents',
+            '#name' => 'index_recreate_keep_documents',
+            '#submit' => [
+                [$this, 'recreateIndexKeepDocuments'],
+            ],
+        ];
     }
 
     protected function buildQueueForm(array &$form)
@@ -435,6 +444,15 @@ class OverviewForm extends FormBase
 
         $this->messenger->addStatus(
             $this->t('Successfully recreated index %indexName', ['%indexName' => $this->indexName])
+        );
+    }
+
+    public function recreateIndexKeepDocuments()
+    {
+        $this->indexApi->createIndex(true);
+
+        $this->messenger->addStatus(
+            $this->t('Successfully recreated index %indexName while keeping documents', ['%indexName' => $this->indexName])
         );
     }
 
