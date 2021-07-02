@@ -106,3 +106,18 @@ services:
             - '@language_manager'
             - '@state'
         tags: [{ name: event_subscriber }]
+
+    wmsearch.batch.index:
+        class: Drupal\wmsearch\Service\IndexBatch
+        arguments:
+            - '@messenger'
+            - '@plugin.manager.queue_worker'
+            - '@queue'
+
+    wmsearch.batch.queue:
+        class: Drupal\wmsearch\Service\QueueBatch
+        arguments:
+            - '@logger.factory'
+            - '@entity_type.manager'
+            - '@entity.memory_cache'
+            - '@messenger'

@@ -14,7 +14,9 @@ use Drupal\wmsearch\EventSubscriber\StopwordsMappingSubscriber;
 use Drupal\wmsearch\Service\Api\AliasApi;
 use Drupal\wmsearch\Service\Api\IndexApi;
 use Drupal\wmsearch\Service\Api\StatsApi;
+use Drupal\wmsearch\Service\IndexBatch;
 use Drupal\wmsearch\Service\Indexer;
+use Drupal\wmsearch\Service\QueueBatch;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class OverviewForm extends FormBase
@@ -27,6 +29,10 @@ class OverviewForm extends FormBase
     protected $aliasApi;
     /** @var StatsApi */
     protected $statsApi;
+    /** @var QueueBatch */
+    protected $queueBatch;
+    /** @var IndexBatch */
+    protected $indexBatch;
     /** @var Indexer */
     protected $indexer;
     /** @var QueueInterface */
@@ -43,6 +49,8 @@ class OverviewForm extends FormBase
         IndexApi $indexApi,
         AliasApi $aliasApi,
         StatsApi $statsApi,
+        QueueBatch $queueBatch,
+        IndexBatch $indexBatch,
         Indexer $indexer,
         QueueFactory $queueFactory,
         ModuleHandlerInterface $moduleHandler,
@@ -53,6 +61,8 @@ class OverviewForm extends FormBase
         $this->indexApi = $indexApi;
         $this->aliasApi = $aliasApi;
         $this->statsApi = $statsApi;
+        $this->queueBatch = $queueBatch;
+        $this->indexBatch = $indexBatch;
         $this->indexer = $indexer;
         $this->queue = $queueFactory->get('wmsearch.index');
         $this->moduleHandler = $moduleHandler;
@@ -67,6 +77,8 @@ class OverviewForm extends FormBase
             $container->get('wmsearch.api.index'),
             $container->get('wmsearch.api.alias'),
             $container->get('wmsearch.api.stats'),
+            $container->get('wmsearch.batch.queue'),
+            $container->get('wmsearch.batch.index'),
             $container->get('wmsearch.indexer'),
             $container->get('queue'),
             $container->get('module_handler'),
@@ -408,24 +420,12 @@ class OverviewForm extends FormBase
 
     public function runQueue()
     {
-        $batch = [
-            'title' => t('Adding documents to index'),
-            'operations' => [],
-            'finished' => [QueueUIBatch::class, 'finish'],
-        ];
-
-        $batch['operations'][] = [QueueUIBatch::class . '::step', ['wmsearch.index']];
-
-        batch_set($batch);
+        $this->indexBatch->run();
     }
 
     public function fillQueue()
     {
-        $this->indexer->queueAll(0, 0, 0);
-
-        $this->messenger->addStatus(
-            $this->t('Successfully filled queue with content')
-        );
+        $this->queueBatch->run();
     }
 
     public function emptyQueue()
