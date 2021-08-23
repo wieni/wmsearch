@@ -63,7 +63,7 @@ class ResultFormatter implements ResultFormatterInterface
         $split = explode($pre, $hl, 2);
         $before = count($split) === 2 ? $split[0] : '';
 
-        $sentencesBefore = explode('. ', $before);
+        $sentencesBefore = preg_split('/\. \s?([A-Z])/', $before);
         if (count($sentencesBefore) > 1) {
             $split[0] = implode('. ', array_slice($sentencesBefore, 1));
         }
