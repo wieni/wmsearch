@@ -9,7 +9,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\wmsearch\Service\Api\IndexApi;
 use Drupal\wmsearch\Service\Api\ReindexApi;
 use Drupal\wmsearch\Service\Api\TaskApi;
-use Drupal\wmsearch\Service\Indexer;
+use Drupal\wmsearch\Service\Batch\QueueBatch;
 use Drush\Commands\DrushCommands;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -17,8 +17,8 @@ class IndexCommands extends DrushCommands
 {
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
-    /** @var Indexer */
-    protected $indexer;
+    /** @var QueueBatch */
+    protected $queueBatch;
     /** @var IndexApi */
     protected $indexApi;
     /** @var ReindexApi */
@@ -30,14 +30,14 @@ class IndexCommands extends DrushCommands
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,
-        Indexer $indexer,
+        QueueBatch $queueBatch,
         IndexApi $indexApi,
         ReindexApi $reindexApi,
         TaskApi $taskApi,
         $defaultIndex
     ) {
         $this->entityTypeManager = $entityTypeManager;
-        $this->indexer = $indexer;
+        $this->queueBatch = $queueBatch;
         $this->indexApi = $indexApi;
         $this->reindexApi = $reindexApi;
         $this->taskApi = $taskApi;
@@ -57,7 +57,15 @@ class IndexCommands extends DrushCommands
      */
     public function queue($options = ['from' => '0', 'limit' => '0', 'offset' => '0', 'entity-type' => ''])
     {
-        $this->indexer->queueAll($options['from'], $options['limit'], $options['offset'], $options['entity-type']);
+        $batch = $this->queueBatch->get(
+            $options['entity-type'] ?: null,
+            $options['from'],
+            $options['limit'],
+            $options['offset']
+        );
+
+        batch_set($batch);
+        drush_backend_batch_process();
     }
 
     /**
@@ -88,7 +96,7 @@ class IndexCommands extends DrushCommands
      */
     public function purge()
     {
-        $this->indexer->purge();
+        $this->indexApi->recreate();
     }
 
     /**

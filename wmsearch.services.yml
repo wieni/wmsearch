@@ -57,14 +57,6 @@ services:
         class: Drupal\wmsearch\Service\Api\TaskApi
         parent: wmsearch.api.base
 
-    wmsearch.indexer:
-        class: Drupal\wmsearch\Service\Indexer
-        arguments:
-            - '@entity_type.manager'
-            - '@entity.memory_cache'
-            - '@wmsearch.api.index'
-            - '%wmsearch.indexer.entity_types%'
-
     wmsearch.document_collection.manager:
         class: Drupal\wmsearch\Service\DocumentCollectionManager
         arguments:
@@ -108,16 +100,17 @@ services:
         tags: [{ name: event_subscriber }]
 
     wmsearch.batch.index:
-        class: Drupal\wmsearch\Service\IndexBatch
+        class: Drupal\wmsearch\Service\Batch\IndexBatch
         arguments:
             - '@messenger'
             - '@plugin.manager.queue_worker'
             - '@queue'
 
     wmsearch.batch.queue:
-        class: Drupal\wmsearch\Service\QueueBatch
+        class: Drupal\wmsearch\Service\Batch\QueueBatch
         arguments:
             - '@logger.factory'
             - '@entity_type.manager'
             - '@entity.memory_cache'
             - '@messenger'
+            - '%wmsearch.indexer.entity_types%'

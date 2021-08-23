@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\wmsearch\Service;
+namespace Drupal\wmsearch\Service\Batch;
 
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Messenger\MessengerInterface;
@@ -35,18 +35,18 @@ class IndexBatch
         $this->queueFactory = $queueFactory;
     }
 
-    public function run(): void
+    public function get(): array
     {
-        $batch = [
+        return [
             'title' => $this->t('Adding documents to index'),
-            'operations' => [[$this, 'doRun'], ['']],
+            'operations' => [
+                [[$this, 'doRun'], []],
+            ],
             'finished' => [$this, 'finish'],
         ];
-
-        batch_set($batch);
     }
 
-    public function doRun(string $test, array &$context): void
+    public function doRun(array &$context): void
     {
         // Make sure every queue exists. There is no harm in trying to recreate
         // an existing queue.
@@ -55,8 +55,8 @@ class IndexBatch
         $worker = $this->workerManager->createInstance(self::QUEUE_NAME);
         $queue = $this->queueFactory->get(self::QUEUE_NAME);
 
-        if (empty($context['results']['processed'])) {
-            $context['results']['processed'] = 0;
+        if (!isset($context['results']['processed'])) {
+            $context['results']['processed'] = [];
         }
 
         $context['finished'] = 0;
@@ -104,13 +104,19 @@ class IndexBatch
 
     public function finish(bool $success, array $results): void
     {
-        $this->messenger->addStatus(
-            $this->formatPlural(
-                count($results['processed']),
-                'One document successfully indexed.',
-                '@count documents successfully indexed.'
-            )
-        );
+        if (isset($results['processed']) && is_array($results['processed'])) {
+            $this->messenger->addStatus(
+                $this->formatPlural(
+                    count($results['processed']),
+                    'One document successfully indexed.',
+                    '@count documents successfully indexed.'
+                )
+            );
+        } else {
+            $this->messenger->addStatus(
+                $this->t('Documents successfully indexed.')
+            );
+        }
 
         if (!empty($results['errors'])) {
             $this->messenger->addStatus(

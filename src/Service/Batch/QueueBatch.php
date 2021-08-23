@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\wmsearch\Service;
+namespace Drupal\wmsearch\Service\Batch;
 
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Cache\MemoryCache\MemoryCacheInterface;
@@ -14,7 +14,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 class QueueBatch
 {
-    protected const QUEUE_NAME = 'wmsearch.index';
+    protected const CHUNK_SIZE = 20;
 
     use DependencySerializationTrait;
     use StringTranslationTrait;
@@ -27,48 +27,52 @@ class QueueBatch
     protected $memoryCache;
     /** @var MessengerInterface */
     protected $messenger;
+    /** @var string[] */
+    protected $entityTypes;
 
     public function __construct(
         LoggerChannelFactoryInterface $loggerChannelFactory,
         EntityTypeManagerInterface $entityTypeManager,
         MemoryCacheInterface $memoryCache,
-        MessengerInterface $messenger
+        MessengerInterface $messenger,
+        array $entityTypes
     ) {
         $this->loggerChannelFactory = $loggerChannelFactory;
         $this->entityTypeManager = $entityTypeManager;
         $this->memoryCache = $memoryCache;
         $this->messenger = $messenger;
+        $this->entityTypes = $entityTypes;
     }
 
-    public function run(string $entityTypeId = null, int $from = 0, int $limit = 0, int $offset = 0): void
+    public function get(string $entityTypeId = null, int $from = 0, int $limit = 0, int $offset = 0): array
     {
         if ($entityTypeId) {
-            $operations = [
-                [$this, 'step'],
-                [$entityTypeId, $this->getIds($entityTypeId, $from, $limit, $offset)],
-            ];
+            $entityTypeIds = [$entityTypeId];
         } else {
-            $operations = array_map(
-                function (string $entityTypeId) {
-                    return [
-                        [$this, 'step'],
-                        [$entityTypeId, $this->getIds($entityTypeId)],
-                    ];
-                },
-                $this->getEntityTypes()
-            );
+            $entityTypeIds = $this->entityTypes;
         }
 
-        $batch = [
+        $operations = [];
+
+        foreach ($entityTypeIds as $entityTypeId) {
+            $ids = $this->getIds($entityTypeId, $from, $limit, $offset);
+
+            foreach (array_chunk($ids, self::CHUNK_SIZE) as $chunk) {
+                $operations[] = [
+                    [$this, 'step'],
+                    [$entityTypeId, $chunk, count($ids)],
+                ];
+            }
+        }
+
+        return [
             'title' => $this->t('Processing queue.'),
             'operations' => $operations,
             'finished' => [$this, 'finish'],
         ];
-
-        batch_set($batch);
     }
 
-    public function step(string $entityTypeId, array $ids, array &$context = []): void
+    public function step(string $entityTypeId, array $ids, int $total, &$context = []): void
     {
         try {
             $definition = $this->entityTypeManager->getDefinition($entityTypeId);
@@ -76,30 +80,21 @@ class QueueBatch
             return;
         }
 
-        $context['finished'] = 0;
-
-        if (empty($context['sandbox']['ids'])) {
-            $context['sandbox']['ids'] = $ids;
-        }
-
         if (empty($context['results']['processed'])) {
             $context['results']['processed'] = 0;
         }
 
+        $context['results']['processed'] += count($ids);
+
         $context['message'] = $this->t('Queuing entities of type %entityType: %count remaining.', [
-            '%entityType' => $definition->getLowercaseLabel(),
-            '%count' => count($ids),
+            '%entityType' => $definition->getLabel(),
+            '%count' => $total - $context['results']['processed'],
         ]);
 
-        $id = array_pop($context['sandbox']['ids']);
         $storage = $this->entityTypeManager->getStorage($entityTypeId);
-        $entity = $storage->load($id);
-        wmsearch_queue($entity, true);
 
-        $context['results']['processed']++;
-
-        if (empty($context['sandbox']['ids'])) {
-            $context['finished'] = 1;
+        foreach ($storage->loadMultiple($ids) as $entity) {
+            wmsearch_queue($entity, true);
         }
     }
 
@@ -126,14 +121,6 @@ class QueueBatch
                 'error'
             );
         }
-    }
-
-    protected function getEntityTypes(): array
-    {
-        return [
-            'node',
-            'taxonomy_term',
-        ];
     }
 
     protected function getIds(string $entityTypeId, int $from = 0, int $limit = 0, int $offset = 0): array
