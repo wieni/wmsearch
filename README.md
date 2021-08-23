@@ -55,6 +55,16 @@ q  string The query
 o  int    The offset
 a int    Amount of items
 ```
+
+# Drush
+```
+drush wmsp                      # Recreate the current index, removing all documents. Alias for wmsearch:purge
+drush wmsq                      # Queue content for indexing. Alias for wmsearch:queue
+drush queue:run wmsearch.index  # Index queued content
+drush wmsc                      # Create a new index. Alias for wmsearch-index-create
+drush wmsri                     # Rename an existing index. Alias for wmsearch-reindex
+```
+
 # Config
 
 ```yaml
