@@ -7,7 +7,7 @@ interface QueryInterface
     /**
      * Return the document type.
      *
-     * @return string
+     * @return string|null
      */
     public function getDocumentType();
 
