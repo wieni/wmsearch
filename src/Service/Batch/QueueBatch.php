@@ -53,16 +53,22 @@ class QueueBatch
         }
 
         $operations = [];
+        $count = 0;
 
         foreach ($entityTypeIds as $entityTypeId) {
             $ids = $this->getIds($entityTypeId, $from, $limit, $offset);
+            $count += count($ids);
 
             foreach (array_chunk($ids, self::CHUNK_SIZE) as $chunk) {
                 $operations[] = [
                     [$this, 'step'],
-                    [$entityTypeId, $chunk, count($ids)],
+                    [$entityTypeId, $chunk],
                 ];
             }
+        }
+
+        foreach ($operations as &$operation) {
+            $operation[1][] = $count;
         }
 
         return [
