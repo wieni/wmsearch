@@ -14,6 +14,8 @@ use Drupal\wmsearch\EventSubscriber\StopwordsMappingSubscriber;
 use Drupal\wmsearch\Service\Api\AliasApi;
 use Drupal\wmsearch\Service\Api\IndexApi;
 use Drupal\wmsearch\Service\Api\StatsApi;
+use Drupal\wmsearch\Service\Batch\IndexBatch;
+use Drupal\wmsearch\Service\Batch\QueueBatch;
 use Drupal\wmsearch\Service\Indexer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -27,8 +29,10 @@ class OverviewForm extends FormBase
     protected $aliasApi;
     /** @var StatsApi */
     protected $statsApi;
-    /** @var Indexer */
-    protected $indexer;
+    /** @var QueueBatch */
+    protected $queueBatch;
+    /** @var IndexBatch */
+    protected $indexBatch;
     /** @var QueueInterface */
     protected $queue;
     /** @var ModuleHandlerInterface */
@@ -43,7 +47,8 @@ class OverviewForm extends FormBase
         IndexApi $indexApi,
         AliasApi $aliasApi,
         StatsApi $statsApi,
-        Indexer $indexer,
+        QueueBatch $queueBatch,
+        IndexBatch $indexBatch,
         QueueFactory $queueFactory,
         ModuleHandlerInterface $moduleHandler,
         MessengerInterface $messenger,
@@ -53,7 +58,8 @@ class OverviewForm extends FormBase
         $this->indexApi = $indexApi;
         $this->aliasApi = $aliasApi;
         $this->statsApi = $statsApi;
-        $this->indexer = $indexer;
+        $this->queueBatch = $queueBatch;
+        $this->indexBatch = $indexBatch;
         $this->queue = $queueFactory->get('wmsearch.index');
         $this->moduleHandler = $moduleHandler;
         $this->messenger = $messenger;
@@ -67,7 +73,8 @@ class OverviewForm extends FormBase
             $container->get('wmsearch.api.index'),
             $container->get('wmsearch.api.alias'),
             $container->get('wmsearch.api.stats'),
-            $container->get('wmsearch.indexer'),
+            $container->get('wmsearch.batch.queue'),
+            $container->get('wmsearch.batch.index'),
             $container->get('queue'),
             $container->get('module_handler'),
             $container->get('messenger'),
@@ -217,8 +224,7 @@ class OverviewForm extends FormBase
             '#submit' => [
                 [$this, 'runQueue'],
             ],
-            '#access' => $this->moduleHandler->moduleExists('queue_ui')
-                && $this->queue->numberOfItems() > 0,
+            '#access' => $this->queue->numberOfItems() > 0,
         ];
 
         $form['queue']['actions']['queue_empty'] = [
@@ -409,24 +415,12 @@ class OverviewForm extends FormBase
 
     public function runQueue()
     {
-        $batch = [
-            'title' => t('Adding documents to index'),
-            'operations' => [],
-            'finished' => [QueueUIBatch::class, 'finish'],
-        ];
-
-        $batch['operations'][] = [QueueUIBatch::class . '::step', ['wmsearch.index']];
-
-        batch_set($batch);
+        batch_set($this->indexBatch->get());
     }
 
     public function fillQueue()
     {
-        $this->indexer->queueAll(0, 0, 0);
-
-        $this->messenger->addStatus(
-            $this->t('Successfully filled queue with content')
-        );
+        batch_set($this->queueBatch->get());
     }
 
     public function emptyQueue()
@@ -441,7 +435,7 @@ class OverviewForm extends FormBase
 
     public function recreateIndex()
     {
-        $this->indexer->purge();
+        $this->indexApi->recreate();
 
         $this->messenger->addStatus(
             $this->t('Successfully recreated index %indexName', ['%indexName' => $this->indexName])

@@ -172,6 +172,12 @@ class IndexApi extends BaseApi
         );
     }
 
+    public function recreate()
+    {
+        $this->deleteIndex();
+        $this->createIndex();
+    }
+
     public function addDoc(DocumentInterface $doc, array $docTypes = [])
     {
         $docTypes = $docTypes ?: $doc->getElasticTypes();

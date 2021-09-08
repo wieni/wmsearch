@@ -28,8 +28,5 @@
                 "drush.services.yml": "^9"
             }
         }
-    },
-    "suggest": {
-        "drupal/queue_ui": "to be able to fill and process the queue through the admin interface"
     }
 }

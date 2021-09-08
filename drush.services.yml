@@ -1,9 +1,9 @@
 services:
     wmsearch.commands.index:
-        class: \Drupal\wmsearch\Commands\IndexCommands
+        class: Drupal\wmsearch\Commands\IndexCommands
         arguments:
             - '@entity_type.manager'
-            - '@wmsearch.indexer'
+            - '@wmsearch.batch.queue'
             - '@wmsearch.api.index'
             - '@wmsearch.api.reindex'
             - '@wmsearch.api.task'
