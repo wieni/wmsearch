@@ -19,8 +19,10 @@
     "type": "drupal-module",
     "require": {
         "php": ">=7.1",
-        "drupal/core": "^8.8 || ^9",
         "guzzlehttp/guzzle": "^6.1"
+    },
+    "conflict": {
+        "drupal/core": "<8.8"
     },
     "extra": {
         "drush": {
