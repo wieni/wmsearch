@@ -4,6 +4,13 @@ Manages an index with a single document type `page`
 
 The api allows adding different document types but only `page` is 'managed'.
 
+## Elasticsearch support
+| Elasticsearch version | Last release | Development branch  |
+|-----------------------|--------------|---------------------|
+| 5.x                   | 0.9.6        | release/v0.9        |
+| 6.x                   | /            | feature/elastic-6.x |
+| 7.x                   | 0.10.5       | main                |
+
 # API
 
 inject `wmsearch.api`
