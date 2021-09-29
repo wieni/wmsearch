@@ -87,6 +87,9 @@ class OverviewForm extends FormBase
 
     public function buildForm(array $form, FormStateInterface $form_state)
     {
+        $mapping = $this->indexApi->getMapping();
+        $settings = $this->indexApi->getSettings();
+
         $form['tabs'] = [
             '#type' => 'vertical_tabs',
         ];
@@ -108,6 +111,14 @@ class OverviewForm extends FormBase
         ];
 
         $this->buildQueueForm($form);
+
+        $form['mapping'] = [
+            '#type' => 'details',
+            '#group' => 'tabs',
+            '#title' => $this->t('Mapping', [], ['context' => 'Elasticsearch']),
+        ];
+
+        $this->buildMappingForm($form, $mapping, $settings);
 
         $form['synonyms'] = [
             '#type' => 'details',
@@ -135,7 +146,7 @@ class OverviewForm extends FormBase
             '#access' => $this->currentUser()->hasPermission('administer wmsearch age decay'),
         ];
 
-        $this->buildDecayForm($form);
+        $this->buildDecayForm($form, $mapping);
 
         return $form;
     }
@@ -236,6 +247,21 @@ class OverviewForm extends FormBase
         ];
     }
 
+    protected function buildMappingForm(array &$form, array $mapping, array $settings)
+    {
+        $form['mapping']['mapping'] = [
+            '#type' => 'item',
+            '#title' => $this->t('Mapping', [], ['context' => 'Elasticsearch']),
+            '#markup' => sprintf('<pre>%s</pre>', json_encode($mapping, JSON_PRETTY_PRINT))
+        ];
+
+        $form['mapping']['settings'] = [
+            '#type' => 'item',
+            '#title' => $this->t('Settings'),
+            '#markup' => sprintf('<pre>%s</pre>', json_encode($settings, JSON_PRETTY_PRINT))
+        ];
+    }
+
     protected function buildSynonymsForm(array &$form)
     {
         $synonyms = $this->state->get('wmsearch.synonyms', []);
@@ -302,10 +328,9 @@ class OverviewForm extends FormBase
         ];
     }
 
-    protected function buildDecayForm(array &$form)
+    protected function buildDecayForm(array &$form, array $mapping)
     {
         $settings = $this->state->get('wmsearch.decay', []);
-        $mapping = $this->indexApi->getMapping();
 
         $form['decay']['#tree'] = true;
 

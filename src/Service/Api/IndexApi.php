@@ -353,6 +353,16 @@ class IndexApi extends BaseApi
         return array_values($data)[0]['mappings']['page'] ?? [];
     }
 
+    public function getSettings(): array
+    {
+        $settings = $this->get(
+            sprintf('%s/_settings', $this->index)
+        );
+        $aliasName = key($settings);
+
+        return $settings[$aliasName]['settings'];
+    }
+
     public function getIndexName()
     {
         return $this->index;
