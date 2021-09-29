@@ -179,7 +179,14 @@ class IndexApi extends BaseApi
 
     public function recreate()
     {
-        $this->deleteIndex();
+        try {
+            $this->deleteIndex();
+        } catch (ApiException $exception) {
+            if (!$exception->isIndexNotFound()) {
+                throw $exception;
+            }
+        }
+
         $this->createIndex();
     }
 
