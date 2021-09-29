@@ -111,6 +111,14 @@ class OverviewForm extends FormBase
 
         $this->buildQueueForm($form);
 
+        $form['mapping'] = [
+            '#type' => 'details',
+            '#group' => 'tabs',
+            '#title' => $this->t('Mapping', [], ['context' => 'Elasticsearch']),
+        ];
+
+        $this->buildMappingForm($form);
+
         $form['synonyms'] = [
             '#type' => 'details',
             '#group' => 'tabs',
@@ -235,6 +243,21 @@ class OverviewForm extends FormBase
                 [$this, 'emptyQueue'],
             ],
             '#access' => $this->queue->numberOfItems() > 0,
+        ];
+    }
+
+    protected function buildMappingForm(array &$form)
+    {
+        $form['mapping']['mapping'] = [
+            '#type' => 'item',
+            '#title' => $this->t('Mapping', [], ['context' => 'Elasticsearch']),
+            '#markup' => sprintf('<pre>%s</pre>', json_encode($this->indexApi->getMapping(), JSON_PRETTY_PRINT))
+        ];
+
+        $form['mapping']['settings'] = [
+            '#type' => 'item',
+            '#title' => $this->t('Settings'),
+            '#markup' => sprintf('<pre>%s</pre>', json_encode($this->indexApi->getSettings(), JSON_PRETTY_PRINT))
         ];
     }
 
