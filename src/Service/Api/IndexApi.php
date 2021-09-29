@@ -344,13 +344,14 @@ class IndexApi extends BaseApi
         return $this;
     }
 
-    public function getMapping()
+    public function getMapping(): array
     {
-        $data = $this->get(
+        $mapping = $this->get(
             sprintf('%s/_mapping', $this->index)
         );
+        $aliasName = key($mapping);
 
-        return array_values($data)[0]['mappings']['page'] ?? [];
+        return $mapping[$aliasName]['mappings'];
     }
 
     public function getSettings(): array
