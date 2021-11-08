@@ -5,6 +5,7 @@ namespace Drupal\wmsearch\Service\Api;
 use Drupal\wmsearch\Exception\ApiException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException
 
 class BaseApi
 {
@@ -57,6 +58,11 @@ class BaseApi
         } catch (ClientException $e) {
             throw new ApiException(
                 'Elastic api request failed',
+                (string) $e->getResponse()->getBody()
+            );
+        } catch (RequestException $e) {
+            throw new ApiException(
+           'Elastic api request failed',
                 (string) $e->getResponse()->getBody()
             );
         }
