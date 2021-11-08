@@ -4,8 +4,7 @@ namespace Drupal\wmsearch\Service\Api;
 
 use Drupal\wmsearch\Exception\ApiException;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException
+use GuzzleHttp\Exception\RequestException;
 
 class BaseApi
 {
@@ -50,28 +49,24 @@ class BaseApi
     protected function exec($endpoint, $method, array $options = [])
     {
         try {
-            $r = $this->client->request(
+            $response = $this->client->request(
                 $method,
                 sprintf('%s/%s', $this->endpoint, $endpoint),
                 $options
             );
-        } catch (ClientException $e) {
-            throw new ApiException(
-                'Elastic api request failed',
-                (string) $e->getResponse()->getBody()
-            );
         } catch (RequestException $e) {
-            throw new ApiException(
-           'Elastic api request failed',
-                (string) $e->getResponse()->getBody()
-            );
+            $body = null;
+
+            if ($e->hasResponse()) {
+                $body = (string) $e->getResponse()->getBody();
+            }
+
+            throw new ApiException('Elastic api request failed', $body, 0, $e);
         }
 
-        $body = json_decode($r->getBody(), true);
+        $body = json_decode($response->getBody(), true);
         if ($body === false) {
-            throw new ApiException(
-                'Failed to decode response body'
-            );
+            throw new ApiException('Failed to decode response body');
         }
 
         return $body;
