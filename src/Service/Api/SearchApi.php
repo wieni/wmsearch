@@ -14,9 +14,10 @@ class SearchApi extends BaseApi
 
     public function __construct(
         $endpoint,
-        $index
+        $index,
+        $timeout = 10.0
     ) {
-        parent::__construct($endpoint);
+        parent::__construct($endpoint, $timeout);
 
         if (empty($index)) {
             throw new \InvalidArgumentException(
