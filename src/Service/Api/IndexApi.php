@@ -45,9 +45,10 @@ class IndexApi extends BaseApi
         AliasApi $aliasApi,
         ReindexApi $reindexApi,
         TaskApi $taskApi,
-        DocumentCollectionManager $documentCollectionManager
+        DocumentCollectionManager $documentCollectionManager,
+        $timeout = 10.0
     ) {
-        parent::__construct($endpoint);
+        parent::__construct($endpoint, $timeout);
 
         if (empty($index)) {
             throw new \InvalidArgumentException(

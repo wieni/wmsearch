@@ -13,11 +13,14 @@ parameters:
         - node
         - taxonomy_term
 
+    wmsearch.api.timeout: 10.0
+
 services:
     wmsearch.api.base:
         class: Drupal\wmsearch\Service\Api\BaseApi
         arguments:
             - '%wmsearch.elastic.endpoint%'
+            - '%wmsearch.api.timeout%'
 
     wmsearch.api.index:
         class: Drupal\wmsearch\Service\Api\IndexApi
@@ -32,6 +35,7 @@ services:
             - '@wmsearch.api.reindex'
             - '@wmsearch.api.task'
             - '@wmsearch.document_collection.manager'
+            - '%wmsearch.api.timeout%'
 
     wmsearch.api.alias:
         class: Drupal\wmsearch\Service\Api\AliasApi
@@ -46,12 +50,14 @@ services:
         parent: wmsearch.api.base
         arguments:
             - '%wmsearch.elastic.index%'
+            - '%wmsearch.api.timeout%'
 
     wmsearch.api.stats:
         class: Drupal\wmsearch\Service\Api\StatsApi
         parent: wmsearch.api.base
         arguments:
             - '@wmsearch.api.alias'
+            - '%wmsearch.api.timeout%'
 
     wmsearch.api.task:
         class: Drupal\wmsearch\Service\Api\TaskApi

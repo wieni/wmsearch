@@ -9,9 +9,10 @@ class StatsApi extends BaseApi
 
     public function __construct(
         $endpoint,
-        AliasApi $aliasApi
+        AliasApi $aliasApi,
+        $timeout = 10.0
     ) {
-        parent::__construct($endpoint);
+        parent::__construct($endpoint, $timeout);
         $this->aliasApi = $aliasApi;
     }
 
