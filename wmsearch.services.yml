@@ -20,7 +20,6 @@ services:
         class: Drupal\wmsearch\Service\Api\BaseApi
         arguments:
             - '%wmsearch.elastic.endpoint%'
-            - '%wmsearch.api.timeout%'
 
     wmsearch.api.index:
         class: Drupal\wmsearch\Service\Api\IndexApi
