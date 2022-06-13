@@ -13,17 +13,10 @@ class BaseApi
     /** @var string */
     protected $endpoint;
 
-    public function __construct($endpoint, $timeout = 10.0)
+    public function __construct($endpoint, Client $client)
     {
         $this->endpoint = $endpoint;
-        $this->client = new Client([
-            'verify' => false,
-            'timeout' => $timeout,
-            'headers' => [
-                'content-type' => 'application/json',
-                'Accept' => 'application/json'
-            ],
-        ]);
+        $this->client = $client;
     }
 
     protected function get($endpoint, array $options = [])

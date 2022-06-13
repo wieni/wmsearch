@@ -2,6 +2,8 @@
 
 namespace Drupal\wmsearch\Service\Api;
 
+use GuzzleHttp\Client;
+
 class StatsApi extends BaseApi
 {
     /** @var AliasApi */
@@ -9,10 +11,10 @@ class StatsApi extends BaseApi
 
     public function __construct(
         $endpoint,
-        AliasApi $aliasApi,
-        $timeout = 10.0
+        Client $client,
+        AliasApi $aliasApi
     ) {
-        parent::__construct($endpoint, $timeout);
+        parent::__construct($endpoint, $client);
         $this->aliasApi = $aliasApi;
     }
 

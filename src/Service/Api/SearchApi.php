@@ -6,6 +6,7 @@ use Drupal\wmsearch\Entity\Query\HighlightInterface;
 use Drupal\wmsearch\Entity\Query\QueryInterface;
 use Drupal\wmsearch\Entity\Result\SearchResult;
 use Drupal\wmsearch\Service\HtmlStripper;
+use GuzzleHttp\Client;
 
 class SearchApi extends BaseApi
 {
@@ -14,10 +15,10 @@ class SearchApi extends BaseApi
 
     public function __construct(
         $endpoint,
-        $index,
-        $timeout = 10.0
+        Client $client,
+        $index
     ) {
-        parent::__construct($endpoint, $timeout);
+        parent::__construct($endpoint, $client);
 
         if (empty($index)) {
             throw new \InvalidArgumentException(
