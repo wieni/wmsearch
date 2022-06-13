@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=7.0.0",
-        "guzzlehttp/guzzle": "^6.1"
+        "guzzlehttp/guzzle": "^6.1 || ^7.4.4"
     },
     "conflict": {
         "drupal/core": "<8.8"

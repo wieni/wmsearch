@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - new `wmsearch.http.client` service and inject it into BaseApi
 
+### Changed
+- Allow Guzzle ^7.4.4 
+
 ## [0.10.9] - 2021-11-08
 ### Changed
 - Catch 5xx and connection exceptions in addition to catching
