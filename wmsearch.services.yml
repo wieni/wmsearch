@@ -13,11 +13,23 @@ parameters:
         - node
         - taxonomy_term
 
+    wmsearch.http.config: { }
+
 services:
+    wmsearch.http.client.factory:
+        class: Drupal\wmsearch\Service\HttpClientFactory
+
+    wmsearch.http.client:
+        class: GuzzleHttp\Client
+        factory: ['@wmsearch.http.client.factory', create]
+        arguments:
+            - '%wmsearch.http.config%'
+
     wmsearch.api.base:
         class: Drupal\wmsearch\Service\Api\BaseApi
         arguments:
             - '%wmsearch.elastic.endpoint%'
+            - '@wmsearch.http.client'
 
     wmsearch.api.index:
         class: Drupal\wmsearch\Service\Api\IndexApi

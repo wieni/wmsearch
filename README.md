@@ -9,7 +9,7 @@ The api allows adding different document types but only `page` is 'managed'.
 |-----------------------|--------------|---------------------|
 | 5.x                   | 0.9.6        | release/v0.9        |
 | 6.x                   | /            | feature/elastic-6.x |
-| 7.x                   | 0.10.5       | main                |
+| 7.x                   | 0.11.0       | main                |
 
 # API
 

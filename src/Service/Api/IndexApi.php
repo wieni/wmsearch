@@ -10,6 +10,7 @@ use Drupal\wmsearch\Service\DocumentCollectionManager;
 use Drupal\wmsearch\WmsearchEvents;
 use Drupal\wmsearch\Event\MappingEvent;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\PumpStream;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -37,6 +38,7 @@ class IndexApi extends BaseApi
 
     public function __construct(
         $endpoint,
+        Client $client,
         $appRoot,
         $index,
         ModuleHandlerInterface $moduleHandler,
@@ -47,7 +49,7 @@ class IndexApi extends BaseApi
         TaskApi $taskApi,
         DocumentCollectionManager $documentCollectionManager
     ) {
-        parent::__construct($endpoint);
+        parent::__construct($endpoint, $client);
 
         if (empty($index)) {
             throw new \InvalidArgumentException(
