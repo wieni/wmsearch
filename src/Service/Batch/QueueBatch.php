@@ -147,6 +147,7 @@ class QueueBatch
             $query->range($offset, $limit);
         }
 
+        $query->accessCheck(false);
         $query->sort($definition->getKey('id'), 'DESC');
 
         return $query->execute();
