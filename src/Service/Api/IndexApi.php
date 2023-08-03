@@ -93,7 +93,7 @@ class IndexApi extends BaseApi
         }
 
         $event = new MappingEvent($mapping);
-        $this->eventDispatcher->dispatch(WmsearchEvents::MAPPING, $event);
+        $this->eventDispatcher->dispatch($event, WmsearchEvents::MAPPING);
 
         return $this->baseMapping = $event->getMapping();
     }
