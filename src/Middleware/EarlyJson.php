@@ -40,9 +40,10 @@ class EarlyJson implements HttpKernelInterface
 
     public function handle(
         Request $request,
-        $type = self::MASTER_REQUEST,
+        $type = self::MAIN_REQUEST,
         $catch = true
-    ) {
+    ): \Symfony\Component\HttpFoundation\Response
+    {
         if ($request->getPathInfo() !== $this->path) {
             return $this->next->handle($request, $type, $catch);
         }

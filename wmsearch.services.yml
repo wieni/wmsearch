@@ -35,7 +35,7 @@ services:
         class: Drupal\wmsearch\Service\Api\IndexApi
         parent: wmsearch.api.base
         arguments:
-            - '@app.root'
+            - '%app.root%'
             - '%wmsearch.elastic.index%'
             - '@module_handler'
             - '@event_dispatcher'

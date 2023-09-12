@@ -2,7 +2,7 @@
 
 namespace Drupal\wmsearch\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class MappingEvent extends Event
 {
