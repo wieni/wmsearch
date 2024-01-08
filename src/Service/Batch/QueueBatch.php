@@ -102,6 +102,9 @@ class QueueBatch
         foreach ($storage->loadMultiple($ids) as $entity) {
             wmsearch_queue($entity, true);
         }
+
+        $this->memoryCache->deleteAll();
+        gc_collect_cycles();
     }
 
     public function finish(bool $success, array $results): void
