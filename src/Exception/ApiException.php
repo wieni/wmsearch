@@ -42,9 +42,59 @@ class ApiException extends \RuntimeException
         );
     }
 
+    public function hasBody()
+    {
+        return null !== $this->body;
+    }
+
+    /**
+     * @example Body of a failed API request:
+     *  Elastic api request failed: {
+     *    "error": {
+     *      "root_cause": [
+     *        {
+     *          "type": "parsing_exception",
+     *          "reason": "No value specified for terms query",
+     *          "line": 1,
+     *          "col": 79
+     *        }
+     *      ],
+     *      "type": "x_content_parse_exception",
+     *      "reason": "[1:79] [bool] failed to parse field [filter]",
+     *      "caused_by": {
+     *        "type": "parsing_exception",
+     *        "reason": "No value specified for terms query",
+     *        "line": 1,
+     *        "col": 79
+     *      }
+     *    },
+     *    "status": 400
+     *  }
+    */
     public function getBody()
     {
         return $this->body;
+    }
+
+    public function getReason()
+    {
+        if ($this->hasBody()) {
+            $reason = $this->getBody()['error']['root_cause'][0]['reason']
+                ?? $this->getBody()['error']['reason']
+                ?? null
+            ;
+        }
+
+        return $reason ?? $this->getMessage();
+    }
+
+    public function getStatus()
+    {
+        if ($this->hasBody()) {
+            $status = $this->getBody()['status'] ?? null;
+        }
+
+        return $status ?? ($this->getCode() ?: 400);
     }
 
     public function is($type)
