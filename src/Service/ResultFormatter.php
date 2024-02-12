@@ -88,8 +88,18 @@ class ResultFormatter implements ResultFormatterInterface
 
     public function formatException(ApiException $e = null)
     {
+        if (null === $e) {
+            return [
+                'err' => 'Something went wrong',
+                'status' => 400,
+            ];
+        }
+
         // TODO expose all errors or use a SafeToPrintException...?
-        return ['err' => $e ? $e->getMessage() : 'Something went wrong'];
+        return [
+            'err' => $e->getReason(),
+            'status' => $e->getStatus(),
+        ];
     }
 }
 
