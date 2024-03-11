@@ -42,6 +42,8 @@ class IndexCommands extends DrushCommands
         $this->reindexApi = $reindexApi;
         $this->taskApi = $taskApi;
         $this->defaultIndex = $defaultIndex;
+
+        parent::__construct();
     }
 
     /**
