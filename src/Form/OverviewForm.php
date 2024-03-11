@@ -9,6 +9,7 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\Core\State\StateInterface;
+use Drupal\Core\StringTranslation\ByteSizeMarkup;
 use Drupal\wmsearch\EventSubscriber\StopwordsMappingSubscriber;
 use Drupal\wmsearch\Service\Api\AliasApi;
 use Drupal\wmsearch\Service\Api\IndexApi;
@@ -187,7 +188,7 @@ class OverviewForm extends FormBase
         $form['index']['store_size'] = [
             '#type' => 'item',
             '#title' => 'Store size',
-            '#markup' => format_size($stats['total']['store']['size_in_bytes']),
+            '#markup' => ByteSizeMarkup::create($stats['total']['store']['size_in_bytes']),
         ];
 
         $form['index']['actions']['index_recreate'] = [

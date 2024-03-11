@@ -10,6 +10,7 @@ use Drupal\Core\Queue\RequeueException;
 use Drupal\Core\Queue\SuspendQueueException;
 use Drupal\Core\Render\Markup;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Utility\Error;
 
 class IndexBatch
 {
@@ -88,7 +89,7 @@ class IndexBatch
             // release the item and skip to the next queue.
             $queue->releaseItem($item);
 
-            watchdog_exception('wmsearch', $e);
+            Error::logException(\Drupal::logger('wmsearch'), $e);
             $context['results']['errors'][] = $e->getMessage();
 
             // Marking the batch job as finished will stop further processing.
@@ -97,7 +98,7 @@ class IndexBatch
         } catch (\Exception $e) {
             // In case of any other kind of exception, log it and leave the item
             // in the queue to be processed again later.
-            watchdog_exception('wmsearch', $e);
+            Error::logException(\Drupal::logger('wmsearch'), $e);
             $context['results']['errors'][] = $e->getMessage();
         }
     }
