@@ -2,7 +2,7 @@
 
 namespace Drupal\wmsearch\Service\Api;
 
-use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\wmsearch\Entity\Document\ElasticEntityInterface;
 use Drupal\wmsearch\Exception\ApiException;
 use Drupal\wmsearch\Exception\NotIndexableException;
@@ -25,7 +25,7 @@ class IndexApi extends BaseApi
 
     /** @var EventDispatcherInterface */
     protected $eventDispatcher;
-    /** @var FileSystem */
+    /** @var \Drupal\Core\File\FileSystemInterface */
     protected $fileSystem;
     /** @var AliasApi */
     protected $aliasApi;
@@ -43,7 +43,7 @@ class IndexApi extends BaseApi
         $index,
         ModuleHandlerInterface $moduleHandler,
         EventDispatcherInterface $eventDispatcher,
-        FileSystem $fileSystem,
+        FileSystemInterface $fileSystem,
         AliasApi $aliasApi,
         ReindexApi $reindexApi,
         TaskApi $taskApi,
