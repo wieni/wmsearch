@@ -44,7 +44,7 @@ class QueueBatch
         $this->entityTypes = $entityTypes;
     }
 
-    public function get(string $entityTypeId = null, int $from = 0, int $limit = 0, int $offset = 0): array
+    public function get(?string $entityTypeId = null, int $from = 0, int $limit = 0, int $offset = 0): array
     {
         if ($entityTypeId) {
             $entityTypeIds = [$entityTypeId];

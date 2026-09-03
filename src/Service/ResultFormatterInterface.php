@@ -16,6 +16,6 @@ interface ResultFormatterInterface
         $highlightPostTag
     );
 
-    public function formatException(ApiException $e = null);
+    public function formatException(?ApiException $e = null);
 }
 

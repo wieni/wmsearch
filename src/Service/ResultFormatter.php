@@ -86,7 +86,7 @@ class ResultFormatter implements ResultFormatterInterface
         return implode($post, $split);
     }
 
-    public function formatException(ApiException $e = null)
+    public function formatException(?ApiException $e = null)
     {
         if (null === $e) {
             return [

@@ -10,7 +10,7 @@ class ApiException extends \RuntimeException
         $msg,
         $body = null,
         $code = 0,
-        \Throwable $previous = null
+        ?\Throwable $previous = null
     ) {
         if (!$body) {
             parent::__construct($msg, $code, $previous);
