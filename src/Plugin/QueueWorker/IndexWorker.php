@@ -19,6 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   cron = {"time" = 30}
  * )
  */
+#[\Drupal\Core\Queue\Attribute\QueueWorker(id: 'wmsearch.index', title: new \Drupal\Core\StringTranslation\TranslatableMarkup('Elastic index queue'), cron: ['time' => 30])]
 class IndexWorker extends QueueWorkerBase implements ContainerFactoryPluginInterface
 {
     /** @var IndexApi */
