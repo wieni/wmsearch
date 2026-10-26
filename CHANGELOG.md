@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-10-26
+### Changed
+- The `wmsearch.index` queue worker is declared with the `#[QueueWorker]` attribute as well.
+
+### Removed
+- Support for Drupal before 11.4 and PHP before 8.2. The module now requires Drupal `^11.4 || ^12` and PHP 8.2 or
+  higher.
+
 ## [0.12.3] - 2024-03-15
 ### Fixed
 - Fix Drupal deprecations

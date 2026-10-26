@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "php": ">=7.0.0",
+        "php": ">=8.2",
+        "drupal/core": "^11.4 || ^12",
         "guzzlehttp/guzzle": "^6.1 || ^7.4.4"
     },
     "conflict": {
