@@ -62,7 +62,7 @@ class StopwordsMappingSubscriber implements EventSubscriberInterface
         $this->state = $state;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             WmsearchEvents::MAPPING => 'onMapping',

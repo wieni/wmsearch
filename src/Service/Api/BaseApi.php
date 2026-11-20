@@ -24,14 +24,16 @@ class BaseApi
         return $this->exec($endpoint, 'GET', $options);
     }
 
+    // The (string) casts keep sending an empty body when json_encode() fails:
+    // guzzlehttp/psr7 3 (Guzzle 8) throws on a bool body where 2 sent ''.
     protected function put($endpoint, array $data = [])
     {
-        return $this->exec($endpoint, 'PUT', ['body' => json_encode($data)]);
+        return $this->exec($endpoint, 'PUT', ['body' => (string) json_encode($data)]);
     }
 
     protected function post($endpoint, array $data = [])
     {
-        return $this->exec($endpoint, 'POST', ['body' => json_encode($data)]);
+        return $this->exec($endpoint, 'POST', ['body' => (string) json_encode($data)]);
     }
 
     protected function delete($endpoint)
@@ -50,8 +52,11 @@ class BaseApi
         } catch (RequestException $e) {
             $body = null;
 
-            if ($e->hasResponse()) {
-                $body = (string) $e->getResponse()->getBody();
+            // Guzzle 8 dropped hasResponse() and only has getResponse() on
+            // its ResponseException subclass; Guzzle 6/7 return ?Response.
+            $response = method_exists($e, 'getResponse') ? $e->getResponse() : null;
+            if ($response) {
+                $body = (string) $response->getBody();
             }
 
             throw new ApiException('Elastic api request failed', $body, 0, $e);
